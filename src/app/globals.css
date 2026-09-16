@@ -1,0 +1,229 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #f3f4f7;
+  --foreground: #111317;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f3f6;
+}
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Print Specific Rules for F4 (Folio) Paper */
+@media print {
+  @page {
+    size: 215mm 330mm; /* Standar Ukuran Kertas F4 / Folio Indonesia */
+    margin: 0;
+  }
+
+  /* Sembunyikan seluruh elemen halaman website di luar lembar surat/laporan */
+  body * {
+    visibility: hidden !important;
+  }
+
+  /* Tampilkan HANYA elemen lembar surat dan lembar laporan kas */
+  .print-sheet,
+  .print-sheet *,
+  .print-laporan,
+  .print-laporan * {
+    visibility: visible !important;
+  }
+
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Kunci tinggi 1 lembar F4 khusus untuk surat jika bukan laporan kas */
+  body:not(:has(.print-laporan)) {
+    width: 215mm !important;
+    height: 330mm !important;
+    overflow: hidden !important;
+  }
+
+  /* Laporan kas mengalir bebas sesuai jumlah baris transaksi */
+  body:has(.print-laporan) {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  body:has(.print-laporan.is-landscape) {
+    width: 330mm !important;
+  }
+
+  body:has(.print-laporan:not(.is-landscape)) {
+    width: 215mm !important;
+  }
+
+  .no-print,
+  nav,
+  aside,
+  header,
+  button,
+  .print-hidden,
+  footer {
+    display: none !important;
+  }
+
+  /* Posisikan lembar kerja F4 tepat di sudut kiri atas kertas tanpa margin / border luar */
+  .print-sheet {
+    position: fixed !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 215mm !important;
+    height: 330mm !important;
+    min-height: 330mm !important;
+    max-height: 330mm !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: #ffffff !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    page-break-after: avoid !important;
+    page-break-before: avoid !important;
+    page-break-inside: avoid !important;
+    break-after: avoid !important;
+    break-before: avoid !important;
+    break-inside: avoid !important;
+    z-index: 999999 !important;
+  }
+
+  /* Lembar Cetak Laporan Kas (Ukuran F4 / Folio: Potret 215x330mm & Lanskap 330x215mm) */
+  .print-laporan {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: #ffffff !important;
+    box-sizing: border-box !important;
+    overflow: visible !important;
+    z-index: 999999 !important;
+  }
+
+  .print-laporan:not(.is-landscape) {
+    width: 215mm !important;
+    min-height: 330mm !important;
+  }
+
+  .print-laporan.is-landscape {
+    width: 330mm !important;
+    min-height: 215mm !important;
+  }
+
+  .print-transform-none {
+    transform: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 215mm !important;
+    position: static !important;
+  }
+}
+
+/* TV Display Running Text Animation */
+@keyframes marquee {
+  0% {
+    transform: translateX(100vw);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.animate-marquee {
+  display: inline-block;
+  white-space: nowrap;
+  animation: marquee 40s linear infinite;
+  will-change: transform;
+}
+
+/* ============================================================ */
+/* MECHANICAL FLIP CLOCK ANIMATION (3D PERSPECTIVE FLIP)       */
+/* ============================================================ */
+.flip-card-container {
+  perspective: 1000px;
+  -webkit-perspective: 1000px;
+}
+
+@keyframes flap-fall {
+  0% {
+    transform: rotateX(0deg);
+  }
+  100% {
+    transform: rotateX(-90deg);
+  }
+}
+
+@keyframes flap-rise {
+  0% {
+    transform: rotateX(90deg);
+  }
+  100% {
+    transform: rotateX(0deg);
+  }
+}
+
+.animate-flap-fall {
+  animation: flap-fall 0.25s ease-in forwards;
+  transform-origin: bottom center;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  will-change: transform;
+}
+
+.animate-flap-rise {
+  animation: flap-rise 0.25s ease-out 0.25s forwards;
+  transform-origin: top center;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: rotateX(90deg);
+  will-change: transform;
+}
+
+/* TV Display Smooth Slide Transitions */
+@keyframes slideFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.995);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-slide-smooth {
+  animation: slideFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+}

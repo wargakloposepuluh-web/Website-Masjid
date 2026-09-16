@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  simas-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: simas_persuratan
+    restart: always
+    ports:
+      - "3000:3000"
+    volumes:
+      # Persistent storage untuk database SQLite lokal dan upload file
+      - ./prisma:/app/prisma
+      - ./public/uploads:/app/public/uploads
+    environment:
+      - NODE_ENV=production
