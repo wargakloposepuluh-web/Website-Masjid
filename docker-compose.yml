@@ -10,8 +10,9 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      # Persistent storage untuk database SQLite lokal dan upload file
+      # Persistent storage untuk database SQLite lokal, upload file, dan sesi WhatsApp
       - ./prisma:/app/prisma
       - ./public/uploads:/app/public/uploads
+      - ./storage:/app/storage
     environment:
       - NODE_ENV=production
