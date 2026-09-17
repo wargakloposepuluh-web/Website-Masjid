@@ -82,22 +82,55 @@ class GoWhatsAppClient {
     const { gatewayUrl, gatewayAuth } = await this.getConfig();
 
     try {
-      // 1. Cek endpoint /app/devices
-      const devicesRes = await fetch(`${gatewayUrl}/app/devices`, {
+      // 1. Cek endpoint /devices (GOWA v8 & v9 modern)
+      let devicesRes = await fetch(`${gatewayUrl}/devices`, {
         method: "GET",
         headers: this.getHeaders(gatewayAuth),
         cache: "no-store",
-      }).catch((err) => {
-        throw new Error(`Koneksi ke Gateway Go WhatsApp (${gatewayUrl}) gagal: ${err.message}`);
-      });
+      }).catch(() => null);
 
-      if (!devicesRes.ok) {
-        // Coba endpoint alternatif /app/status
+      // 2. Fallback ke /app/devices (GOWA versi lawas)
+      if (!devicesRes || !devicesRes.ok) {
+        const legacyRes = await fetch(`${gatewayUrl}/app/devices`, {
+          method: "GET",
+          headers: this.getHeaders(gatewayAuth),
+          cache: "no-store",
+        }).catch(() => null);
+
+        if (legacyRes && legacyRes.ok) {
+          devicesRes = legacyRes;
+        }
+      }
+
+      // Jika endpoint devices mengembalikan 400, artinya gateway aktif tapi belum ada device terhubung
+      if (devicesRes && devicesRes.status === 400) {
+        return {
+          status: "DISCONNECTED",
+          qr: null,
+          user: null,
+          gatewayUrl,
+        };
+      }
+
+      if (!devicesRes || !devicesRes.ok) {
+        // 3. Coba endpoint alternatif /app/status
         const statusRes = await fetch(`${gatewayUrl}/app/status`, {
           method: "GET",
           headers: this.getHeaders(gatewayAuth),
           cache: "no-store",
+        }).catch((err) => {
+          throw new Error(`Koneksi ke Gateway Go WhatsApp (${gatewayUrl}) gagal: ${err.message}`);
         });
+
+        // Status 400 dari GOWA berarti service aktif tapi sesi belum login / disconnected
+        if (statusRes.status === 400) {
+          return {
+            status: "DISCONNECTED",
+            qr: null,
+            user: null,
+            gatewayUrl,
+          };
+        }
 
         if (!statusRes.ok) {
           return {
@@ -136,17 +169,21 @@ class GoWhatsAppClient {
         ? data.data
         : [];
 
-      if (devices.length > 0) {
-        const firstDevice = devices[0];
-        const rawJid = firstDevice.jid || firstDevice.device || "";
+      // Cari device yang statusnya terkoneksi / authenticated
+      const connectedDevice = devices.find(
+        (d: any) => d.is_connected === true || d.status === "authenticated" || d.jid
+      ) || (devices.length > 0 && devices[0].jid ? devices[0] : null);
+
+      if (connectedDevice) {
+        const rawJid = connectedDevice.jid || connectedDevice.device || "";
         const cleanPhone = rawJid.replace(/@.*$/, "").replace(/\D/g, "");
 
         return {
           status: "CONNECTED",
           qr: null,
           user: {
-            id: rawJid || "device-1",
-            name: firstDevice.name || "WhatsApp Resmi Masjid",
+            id: rawJid || connectedDevice.id || "device-1",
+            name: connectedDevice.name || "WhatsApp Resmi Masjid",
             phone: cleanPhone || undefined,
           },
           gatewayUrl,
@@ -177,17 +214,27 @@ class GoWhatsAppClient {
     const { gatewayUrl, gatewayAuth } = await this.getConfig();
 
     try {
-      const res = await fetch(`${gatewayUrl}/app/login`, {
+      // 1. Coba endpoint /app/login
+      let res = await fetch(`${gatewayUrl}/app/login`, {
         method: "GET",
         headers: this.getHeaders(gatewayAuth),
         cache: "no-store",
-      });
+      }).catch(() => null);
 
-      if (!res.ok) {
+      // 2. Jika gagal, coba fallback /devices/login
+      if (!res || !res.ok) {
+        res = await fetch(`${gatewayUrl}/devices/login`, {
+          method: "GET",
+          headers: this.getHeaders(gatewayAuth),
+          cache: "no-store",
+        }).catch(() => null);
+      }
+
+      if (!res || !res.ok) {
         return {
           status: "DISCONNECTED",
           qr: null,
-          error: `Gagal mengambil QR dari gateway (HTTP ${res.status})`,
+          error: res ? `Gagal mengambil QR dari gateway (HTTP ${res.status})` : "Gateway tidak merespons",
         };
       }
 
@@ -196,10 +243,15 @@ class GoWhatsAppClient {
       const qrString = data?.results?.qr || data?.data?.qr;
 
       let finalQr: string | null = null;
-      if (qrLink) {
-        // Jika qr_link adalah path relatif, gabungkan dengan gatewayUrl
-        finalQr = qrLink.startsWith("http") ? qrLink : `${gatewayUrl}${qrLink.startsWith("/") ? "" : "/"}${qrLink}`;
-      } else if (qrString) {
+      if (qrLink && typeof qrLink === "string") {
+        if (qrLink.startsWith("data:image") || qrLink.startsWith("http")) {
+          finalQr = qrLink;
+        } else if (qrLink.length > 200) {
+          finalQr = qrLink;
+        } else {
+          finalQr = `${gatewayUrl}${qrLink.startsWith("/") ? "" : "/"}${qrLink}`;
+        }
+      } else if (qrString && typeof qrString === "string") {
         finalQr = qrString;
       }
 

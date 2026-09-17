@@ -81,15 +81,31 @@ echo "Mengekstrak paket..."
 unzip -o whatsapp.zip
 rm -f whatsapp.zip
 
-# Pastikan binary executable
+# Pastikan binary executable dan ubah nama file menjadi 'whatsapp'
 if [ -f "$INSTALL_DIR/whatsapp" ]; then
   chmod +x "$INSTALL_DIR/whatsapp"
-  BINARY_PATH="$INSTALL_DIR/whatsapp"
+elif [ -f "$INSTALL_DIR/linux-amd64" ]; then
+  mv "$INSTALL_DIR/linux-amd64" "$INSTALL_DIR/whatsapp"
+  chmod +x "$INSTALL_DIR/whatsapp"
+elif [ -f "$INSTALL_DIR/linux-arm64" ]; then
+  mv "$INSTALL_DIR/linux-arm64" "$INSTALL_DIR/whatsapp"
+  chmod +x "$INSTALL_DIR/whatsapp"
+elif [ -f "$INSTALL_DIR/$PKG_ARCH" ]; then
+  mv "$INSTALL_DIR/$PKG_ARCH" "$INSTALL_DIR/whatsapp"
+  chmod +x "$INSTALL_DIR/whatsapp"
 else
-  BINARY_PATH=$(find "$INSTALL_DIR" -maxdepth 2 -type f -name "*whatsapp*" ! -name "*.zip" | head -n 1)
-  chmod +x "$BINARY_PATH"
+  # Cari file non-markdown, non-zip apa pun yang ada di folder
+  FOUND_BIN=$(find "$INSTALL_DIR" -maxdepth 1 -type f ! -name "*.md" ! -name "*.txt" ! -name "*.zip" ! -name "*.sh" | head -n 1)
+  if [ -n "$FOUND_BIN" ]; then
+    mv "$FOUND_BIN" "$INSTALL_DIR/whatsapp"
+    chmod +x "$INSTALL_DIR/whatsapp"
+  else
+    echo -e "${RED}[ERROR] File binary tidak ditemukan di dalam paket!${NC}"
+    exit 1
+  fi
 fi
 
+BINARY_PATH="$INSTALL_DIR/whatsapp"
 echo -e "${GREEN}Binary berhasil dipasang di: $BINARY_PATH${NC}"
 
 # 5. Konfigurasi Systemd Service
