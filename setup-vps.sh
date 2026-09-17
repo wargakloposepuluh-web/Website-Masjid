@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env bash
+#!/usr/bin/env bash
 # ==============================================================================
 # SCRIPT OTOMATIS DEPLOY SIMAS MASJID KE VPS (UBUNTU / DEBIAN)
 # Stack: Node.js 20 LTS + PM2 + Nginx + Certbot SSL
@@ -212,10 +212,11 @@ echo -e "Akun Login Bawaan (Super Admin):"
 echo -e "  - Username : ${YELLOW}admin${NC}"
 echo -e "  - Password : ${YELLOW}admin123${NC}"
 echo -e ""
-echo -e "Perintah Pemeliharaan PM2:"
+echo -e "Perintah Pemeliharaan & Integrasi:"
 echo -e "  - Cek Status Aplikasi : ${CYAN}pm2 status${NC}"
 echo -e "  - Cek Log Realtime    : ${CYAN}pm2 logs simas-masjid${NC}"
 echo -e "  - Restart Aplikasi    : ${CYAN}pm2 restart simas-masjid${NC}"
 echo -e "  - Update Aplikasi     : ${CYAN}bash update.sh${NC}"
 echo -e "  - Backup Database     : ${CYAN}bash backup.sh${NC}"
+echo -e "  - Setup WhatsApp Bot  : ${CYAN}sudo bash setup-whatsapp.sh${NC}"
 echo -e "${CYAN}==============================================================${NC}\n"

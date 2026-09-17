@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env bash
+#!/usr/bin/env bash
 # ==============================================================================
 # SCRIPT UPDATE APLIKASI SIMAS MASJID DI VPS (PM2)
 # ==============================================================================
@@ -16,6 +16,7 @@ fi
 # 2. Pastikan permission folder tetap aman
 mkdir -p prisma public/uploads backups
 chmod -R 775 prisma public/uploads backups 2>/dev/null || true
+chmod +x *.sh 2>/dev/null || true
 
 # 3. Update paket & skema database Prisma
 echo "Memeriksa dependensi..."

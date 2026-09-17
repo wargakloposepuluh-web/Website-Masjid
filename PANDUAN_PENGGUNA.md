@@ -98,3 +98,20 @@ Aplikasi ini menggunakan sistem penyimpanan lokal berbasis file tunggal yang san
   📁 `public/uploads/`
 
 Cukup copy folder proyek ini ke flashdisk jika Anda ingin membuat cadangan data atau memindahkannya ke laptop lain.
+
+---
+
+## 📱 7. Integrasi WhatsApp Gateway (Kirim Surat & Notifikasi via WA)
+
+Aplikasi SIMAS Masjid mendukung pengiriman notifikasi dan surat via WhatsApp menggunakan engine **Go-WhatsApp-Web-Multidevice**:
+
+1. **Di VPS:** Jalankan perintah instalasi otomatis satu kali saja:
+   ```bash
+   sudo bash setup-whatsapp.sh
+   ```
+2. **Di Panel Web SIMAS:**
+   - Masuk ke menu **Pengaturan** > tab **WhatsApp Gateway**.
+   - Pastikan Gateway URL: `http://127.0.0.1:3001`
+   - Klik tombol **"Hubungkan / Scan QR"**, lalu scan QR Code dengan WhatsApp di smartphone Anda.
+3. Setelah terhubung (*Connected*), Anda dapat langsung mengirim surat keluar atau pesan pengingat ke pengurus/jamaah langsung dari aplikasi!
+
