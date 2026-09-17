@@ -39,7 +39,7 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/package.json ./package.json
 
-RUN mkdir -p /app/public/uploads /app/storage && chown -R nextjs:nodejs /app/public/uploads /app/storage
+RUN mkdir -p /app/public/uploads && chown -R nextjs:nodejs /app/public/uploads
 RUN chown -R nextjs:nodejs /app/prisma
 
 USER nextjs

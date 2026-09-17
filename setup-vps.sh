@@ -100,13 +100,12 @@ echo -e "\n${BLUE}[4/8] Menyiapkan Folder Database & Upload...${NC}"
 APP_DIR=$(pwd)
 mkdir -p "$APP_DIR/prisma"
 mkdir -p "$APP_DIR/public/uploads"
-mkdir -p "$APP_DIR/storage/whatsapp-auth"
 mkdir -p "$APP_DIR/backups"
 
 # Berikan izin penuh pada folder yang di-mount agar container Next.js dapat menulis database SQLite
 chmod -R 777 "$APP_DIR/prisma"
 chmod -R 777 "$APP_DIR/public/uploads"
-chmod -R 777 "$APP_DIR/storage"
+chmod -R 777 "$APP_DIR/backups"
 echo -e "${GREEN}Folder persisten siap digunakan.${NC}"
 
 # 6. Build & Jalankan Docker Container

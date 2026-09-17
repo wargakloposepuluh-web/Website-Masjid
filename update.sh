@@ -14,7 +14,7 @@ if [ -d .git ]; then
 fi
 
 # 2. Pastikan permission folder tetap aman
-chmod -R 777 prisma public/uploads storage 2>/dev/null || true
+chmod -R 777 prisma public/uploads 2>/dev/null || true
 
 # 3. Build ulang dan restart container
 echo "Membangun ulang container..."

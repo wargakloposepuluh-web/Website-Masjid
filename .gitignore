@@ -30,9 +30,11 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# scratch & storage
+# scratch, backups & storage
 scratch/
 storage/
+backups/
+*.log
 *.bak
 *.old
 *.tmp
