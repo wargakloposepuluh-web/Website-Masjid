@@ -51,12 +51,16 @@ export async function POST(request: Request) {
       },
     });
 
+    // Cek apakah request menggunakan HTTPS
+    const proto = request.headers.get("x-forwarded-proto") || "";
+    const isHttps = proto.includes("https") || request.url.startsWith("https:");
+
     // Set HttpOnly Cookie
     response.cookies.set({
       name: AUTH_COOKIE_NAME,
       value: token,
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: isHttps,
       sameSite: "lax",
       maxAge: SESSION_DURATION,
       path: "/",

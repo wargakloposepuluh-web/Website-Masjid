@@ -28,4 +28,8 @@ sleep 8
 echo "Sinkronisasi skema database..."
 docker exec -i simas_persuratan npx prisma db push --accept-data-loss || true
 
+# 6. Pastikan akun admin dan data awal terisi jika database baru/kosong
+echo "Memastikan akun dan data awal tersedia..."
+docker exec -i simas_persuratan npm run prisma:seed || true
+
 echo "=== Update Selesai! Aplikasi berjalan normal. ==="
