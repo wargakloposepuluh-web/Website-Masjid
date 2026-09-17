@@ -244,15 +244,41 @@ class GoWhatsAppClient {
 
       let finalQr: string | null = null;
       if (qrLink && typeof qrLink === "string") {
-        if (qrLink.startsWith("data:image") || qrLink.startsWith("http")) {
-          finalQr = qrLink;
-        } else if (qrLink.length > 200) {
+        if (qrLink.startsWith("data:image")) {
           finalQr = qrLink;
         } else {
-          finalQr = `${gatewayUrl}${qrLink.startsWith("/") ? "" : "/"}${qrLink}`;
+          // Bentuk URL lengkap gambar QR di server gateway
+          const fullImgUrl = qrLink.startsWith("http")
+            ? qrLink
+            : `${gatewayUrl}${qrLink.startsWith("/") ? "" : "/"}${qrLink}`;
+
+          try {
+            // Fetch gambar di server dan konversi ke Base64 Data URI
+            // agar browser klien dari mana saja dapat menampilkan QR tanpa akses port 3001
+            const imgRes = await fetch(fullImgUrl, {
+              headers: this.getHeaders(gatewayAuth),
+              cache: "no-store",
+            });
+            if (imgRes.ok) {
+              const arrayBuf = await imgRes.arrayBuffer();
+              const base64 = Buffer.from(arrayBuf).toString("base64");
+              const contentType = imgRes.headers.get("content-type") || "image/png";
+              finalQr = `data:${contentType};base64,${base64}`;
+            } else {
+              finalQr = fullImgUrl;
+            }
+          } catch {
+            finalQr = fullImgUrl;
+          }
         }
       } else if (qrString && typeof qrString === "string") {
-        finalQr = qrString;
+        if (qrString.startsWith("data:image")) {
+          finalQr = qrString;
+        } else if (qrString.length > 200) {
+          finalQr = `data:image/png;base64,${qrString}`;
+        } else {
+          finalQr = qrString;
+        }
       }
 
       return {

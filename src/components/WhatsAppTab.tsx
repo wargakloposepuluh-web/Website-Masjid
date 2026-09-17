@@ -72,7 +72,23 @@ export default function WhatsAppTab() {
       const res = await fetch("/api/whatsapp/status");
       if (res.ok) {
         const data: WAStatusResponse = await res.json();
-        setWaState(data);
+        setWaState((prev) => {
+          // Jika sebelumnya sedang SCANNING dan ada QR code aktif:
+          if (prev.status === "SCANNING" && prev.qr) {
+            // Hanya ganti jika status baru sudah resmi CONNECTED
+            if (data.status === "CONNECTED") {
+              return data;
+            }
+            // Jika status masih DISCONNECTED di gateway, pertahankan QR code dan status SCANNING
+            return {
+              ...data,
+              status: "SCANNING",
+              qr: prev.qr,
+            };
+          }
+          return data;
+        });
+
         if (data.gatewayUrl && !gatewayUrl) {
           setGatewayUrl(data.gatewayUrl);
         }
@@ -130,20 +146,26 @@ export default function WhatsAppTab() {
     setActionLoading(true);
     try {
       const res = await fetch("/api/whatsapp/connect", { method: "POST" });
-      if (res.ok) {
-        const data = await res.json();
+      const data = await res.json();
+
+      if (res.ok && data.qr) {
         setWaState((prev) => ({
           ...prev,
-          status: data.status || "SCANNING",
-          qr: data.qr || null,
+          status: "SCANNING",
+          qr: data.qr,
+          error: undefined,
         }));
+      } else if (data.error) {
+        alert("Pemberitahuan: " + data.error);
+      } else {
+        alert("Gagal mendapatkan QR Code dari Gateway WhatsApp.");
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Gagal meminta QR login:", err);
-      alert("Terjadi kesalahan saat meminta QR login dari Gateway");
+      alert("Terjadi kesalahan saat meminta QR login dari Gateway: " + (err.message || ""));
     } finally {
       setActionLoading(false);
-      checkStatus();
+      // Jangan panggil checkStatus() di sini agar QR code yang baru didapat tidak langsung tertimpa
     }
   };
 
