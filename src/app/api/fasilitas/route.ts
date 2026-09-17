@@ -3,6 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { verifySessionToken } from "@/lib/auth";
 import { cookies } from "next/headers";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 async function getUser(req: NextRequest) {
   const cookieStore = await cookies();
   const token = cookieStore.get("masjid_session")?.value;

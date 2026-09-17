@@ -3,6 +3,9 @@ import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { verifySessionToken, AUTH_COOKIE_NAME, hashPassword } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 async function getSuperAdmin() {
   const token = cookies().get(AUTH_COOKIE_NAME)?.value;
   if (!token) return null;

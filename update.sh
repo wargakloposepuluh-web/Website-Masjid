@@ -1,6 +1,6 @@
-#!/usr/bin/env bash
+﻿#!/usr/bin/env bash
 # ==============================================================================
-# SCRIPT UPDATE APLIKASI SIMAS MASJID DI VPS
+# SCRIPT UPDATE APLIKASI SIMAS MASJID DI VPS (PM2)
 # ==============================================================================
 
 set -e
@@ -14,22 +14,23 @@ if [ -d .git ]; then
 fi
 
 # 2. Pastikan permission folder tetap aman
-chmod -R 777 prisma public/uploads 2>/dev/null || true
+mkdir -p prisma public/uploads backups
+chmod -R 775 prisma public/uploads backups 2>/dev/null || true
 
-# 3. Build ulang dan restart container
-echo "Membangun ulang container..."
-docker-compose up -d --build
+# 3. Update paket & skema database Prisma
+echo "Memeriksa dependensi..."
+npm install --production=false
 
-# 4. Tunggu container aktif
-echo "Menunggu container aktif..."
-sleep 8
+echo "Memperbarui skema Prisma..."
+npx prisma generate
+npx prisma db push --accept-data-loss
 
-# 5. Jalankan sinkronisasi database jika ada perubahan skema prisma
-echo "Sinkronisasi skema database..."
-docker exec -i simas_persuratan npx prisma db push --accept-data-loss || true
+# 4. Build ulang Next.js dengan alokasi memory yang aman
+echo "Melakukan compile Next.js..."
+NODE_OPTIONS="--max-old-space-size=1536" npm run build
 
-# 6. Pastikan akun admin dan data awal terisi jika database baru/kosong
-echo "Memastikan akun dan data awal tersedia..."
-docker exec -i simas_persuratan npm run prisma:seed || true
+# 5. Reload PM2 tanpa downtime
+echo "Me-reload aplikasi di PM2..."
+pm2 reload simas-masjid || pm2 restart simas-masjid
 
-echo "=== Update Selesai! Aplikasi berjalan normal. ==="
+echo "=== Update Selesai! Aplikasi berjalan dengan versi terbaru. ==="

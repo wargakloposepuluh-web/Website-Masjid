@@ -236,7 +236,7 @@ export default function MosqueTvDisplayPage() {
     {
       type: "KEUANGAN",
       title: "KEUANGAN MASJID",
-      subtitle: "Pengelolaan terpisah Kas Jariyah (Pembangunan & Aset) dan Kas Infaq / Shodaqoh (Operasional & Sosial).",
+      subtitle: "Pengelolaan Terpisah Kas Jariyah dan Kas Infaq/Shodaqoh",
     },
     {
       type: "FASILITAS",
@@ -947,12 +947,12 @@ export default function MosqueTvDisplayPage() {
                         key={idx}
                         className={`px-4 py-2.5 sm:py-3 rounded-xl flex items-center justify-between transition-all duration-300 ${
                           isNext
-                            ? "bg-emerald-600 text-white font-bold shadow-md shadow-emerald-950/10"
+                            ? "bg-slate-900 text-white font-bold shadow-md shadow-slate-950/20 border border-slate-800"
                             : "bg-white/60 hover:bg-white/80 text-slate-800 border border-white/70 shadow-2xs"
                         }`}
                       >
                         <div className="flex items-center gap-3">
-                          <div className={isNext ? "text-white" : "text-emerald-600"}>
+                          <div className={isNext ? "text-emerald-400" : "text-emerald-600"}>
                             {p.icon}
                           </div>
                           <span className="text-sm sm:text-base lg:text-lg font-black uppercase tracking-tight">

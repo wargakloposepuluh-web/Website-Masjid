@@ -197,7 +197,7 @@ export default function KeuanganPage() {
             </h1>
           </div>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Pengelolaan terpisah Kas Jariyah (Pembangunan & Aset) dan Kas Infaq / Shodaqoh (Operasional & Sosial).
+            Pengelolaan Terpisah Kas Jariyah dan Kas Infaq/Shodaqoh
           </p>
         </div>
 

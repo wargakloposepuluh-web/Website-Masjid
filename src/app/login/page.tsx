@@ -465,7 +465,7 @@ function LoginContent() {
                 <h1 className="text-base sm:text-2xl lg:text-3xl xl:text-4xl font-extrabold tracking-tight text-slate-900 leading-tight">
                   Masjid Baitul Maghfirah
                 </h1>
-                <p className="text-[9px] sm:text-xs lg:text-sm font-semibold text-emerald-900 leading-snug mt-0.5 break-words">
+                <p className="hidden sm:block text-[9px] sm:text-xs lg:text-sm font-semibold text-emerald-900 leading-snug mt-0.5 break-words">
                   {portalData?.profil?.alamatOrganisasi || "Jl. Raya Kloposepuluh, RT : 11, RW : 03, - Sukodono - Sidoarjo"}
                 </p>
                 <div className="flex items-center gap-1.5 sm:gap-2.5 text-[9px] sm:text-xs lg:text-[13px] font-medium text-emerald-900 mt-1 flex-wrap">
@@ -473,8 +473,8 @@ function LoginContent() {
                     <Phone className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 text-emerald-800 flex-shrink-0" />
                     <span>{displayPhone}</span>
                   </span>
-                  <span className="text-emerald-900/40">•</span>
-                  <span className="flex items-center gap-1">
+                  <span className="hidden sm:inline text-emerald-900/40">•</span>
+                  <span className="hidden sm:flex items-center gap-1">
                     <Mail className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 text-emerald-800 flex-shrink-0" />
                     <span className="break-all sm:break-normal">{displayEmail}</span>
                   </span>
@@ -549,7 +549,7 @@ function LoginContent() {
           <div className="flex flex-col items-center text-center gap-1">
             <h3 className="text-lg sm:text-xl lg:text-2xl font-black uppercase tracking-wider text-slate-900 flex items-center justify-center gap-2.5">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-600" />
-              <span>Jadwal Sholat Sidoarjo</span>
+              <span>Jadwal Sholat</span>
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-600" />
             </h3>
             {prayerSchedule && (
@@ -568,12 +568,12 @@ function LoginContent() {
                   key={idx}
                   className={`px-3.5 py-2.5 sm:px-4 sm:py-3.5 rounded-xl flex items-center justify-between transition-all duration-300 ${
                     isNext
-                      ? "bg-emerald-600 text-white font-bold shadow-md shadow-emerald-950/10"
+                      ? "bg-slate-900 text-white font-bold shadow-md shadow-slate-950/20 border border-slate-800"
                       : "bg-white/60 hover:bg-white/80 text-slate-800 border border-white/70 shadow-2xs"
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className={isNext ? "text-white" : "text-emerald-600"}>
+                    <div className={isNext ? "text-emerald-400" : "text-emerald-600"}>
                       {p.icon}
                     </div>
                     <span className="text-sm sm:text-xs lg:text-sm font-black uppercase tracking-tight">
@@ -628,7 +628,7 @@ function LoginContent() {
             KEUANGAN MASJID
           </h3>
           <p className="text-xs sm:text-sm text-white font-medium mt-0.5 max-w-2xl leading-relaxed">
-            Pengelolaan terpisah Kas Jariyah (Pembangunan & Aset) dan Kas Infaq / Shodaqoh (Operasional & Sosial).
+            Pengelolaan Terpisah Kas Jariyah dan Kas Infaq/Shodaqoh
           </p>
         </div>
 
@@ -636,71 +636,74 @@ function LoginContent() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* Sisi Kiri: 3 Kartu Saldo & Catatan Transaksi (8 Kolom) */}
           <div className="lg:col-span-8 space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {/* Card 1: Kas Jariyah */}
-              <div className="bg-white/60 backdrop-blur-md rounded-3xl p-5 border border-white/70 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-col justify-between space-y-3 hover:bg-white/75 transition">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-teal-700 font-bold text-xs uppercase tracking-wider">
-                    <Landmark className="w-4 h-4" />
-                    <span>Kas Jariyah</span>
+            {/* 1 Kotak Utuh: Informasi Kas Jariyah, Kas Infaq, dan Total Saldo Kas */}
+            <div className="bg-white/70 backdrop-blur-md rounded-3xl border border-white/80 shadow-[0_4px_20px_rgba(0,0,0,0.03)] overflow-hidden">
+              <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-slate-200/70">
+                {/* 1. Kas Jariyah */}
+                <div className="p-5 sm:p-6 flex flex-col justify-between space-y-3 hover:bg-teal-50/20 transition">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-teal-700 font-bold text-xs uppercase tracking-wider">
+                      <Landmark className="w-4 h-4" />
+                      <span>Kas Jariyah</span>
+                    </div>
+                    <span className="text-[10px] px-2 py-0.5 rounded-lg bg-teal-50 text-teal-700 font-semibold border border-teal-200/60">
+                      Pembangunan
+                    </span>
                   </div>
-                  <span className="text-[10px] px-2 py-0.5 rounded-lg bg-teal-50 text-teal-700 font-semibold border border-teal-200/60">
-                    Pembangunan
-                  </span>
+                  <div>
+                    <span className="text-[11px] font-bold text-slate-700">Saldo Kas Jariyah:</span>
+                    <h4 className="text-xl sm:text-2xl font-extrabold text-slate-900 mt-0.5">
+                      {portalData?.keuangan ? formatRupiah(portalData.keuangan.saldoJariyah) : "..."}
+                    </h4>
+                  </div>
+                  <p className="text-[11px] text-slate-600 font-medium pt-2 border-t border-slate-100 leading-relaxed">
+                    Renovasi fisik, sarana ibadah & fasilitas gedung.
+                  </p>
                 </div>
-                <div>
-                  <span className="text-[11px] font-bold text-slate-800">Saldo Kas Jariyah:</span>
-                  <h4 className="text-xl sm:text-2xl font-extrabold text-slate-900 mt-0.5">
-                    {portalData?.keuangan ? formatRupiah(portalData.keuangan.saldoJariyah) : "..."}
-                  </h4>
-                </div>
-                <p className="text-[11px] text-slate-800 font-medium pt-2 border-t border-slate-100 leading-relaxed">
-                  Renovasi fisik, sarana ibadah & fasilitas gedung.
-                </p>
-              </div>
 
-              {/* Card 2: Kas Infaq */}
-              <div className="bg-white/60 backdrop-blur-md rounded-3xl p-5 border border-white/70 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-col justify-between space-y-3 hover:bg-white/75 transition">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-amber-700 font-bold text-xs uppercase tracking-wider">
-                    <HeartHandshake className="w-4 h-4" />
-                    <span>Kas Infaq</span>
+                {/* 2. Kas Infaq */}
+                <div className="p-5 sm:p-6 flex flex-col justify-between space-y-3 hover:bg-amber-50/20 transition">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-amber-700 font-bold text-xs uppercase tracking-wider">
+                      <HeartHandshake className="w-4 h-4" />
+                      <span>Kas Infaq</span>
+                    </div>
+                    <span className="text-[10px] px-2 py-0.5 rounded-lg bg-amber-50 text-amber-700 font-semibold border border-amber-200/60">
+                      Operasional
+                    </span>
                   </div>
-                  <span className="text-[10px] px-2 py-0.5 rounded-lg bg-amber-50 text-amber-700 font-semibold border border-amber-200/60">
-                    Operasional
-                  </span>
+                  <div>
+                    <span className="text-[11px] font-bold text-slate-700">Saldo Kas Infaq:</span>
+                    <h4 className="text-xl sm:text-2xl font-extrabold text-slate-900 mt-0.5">
+                      {portalData?.keuangan ? formatRupiah(portalData.keuangan.saldoInfaq) : "..."}
+                    </h4>
+                  </div>
+                  <p className="text-[11px] text-slate-600 font-medium pt-2 border-t border-slate-100 leading-relaxed">
+                    Operasional harian, listrik, air, kajian & takmir.
+                  </p>
                 </div>
-                <div>
-                  <span className="text-[11px] font-bold text-slate-800">Saldo Kas Infaq:</span>
-                  <h4 className="text-xl sm:text-2xl font-extrabold text-slate-900 mt-0.5">
-                    {portalData?.keuangan ? formatRupiah(portalData.keuangan.saldoInfaq) : "..."}
-                  </h4>
-                </div>
-                <p className="text-[11px] text-slate-800 font-medium pt-2 border-t border-slate-100 leading-relaxed">
-                  Operasional harian, listrik, air, kajian & takmir.
-                </p>
-              </div>
 
-              {/* Card 3: Total Saldo Kas */}
-              <div className="bg-emerald-50/90 backdrop-blur-md rounded-3xl p-5 border border-white/70 shadow-2xs flex flex-col justify-between space-y-3 hover:bg-emerald-50 transition">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-emerald-800 font-extrabold text-xs uppercase tracking-wider">
-                    <Coins className="w-4 h-4 text-emerald-700" />
-                    <span>Total Saldo Kas</span>
+                {/* 3. Total Saldo Kas (Highlight) */}
+                <div className="p-5 sm:p-6 bg-gradient-to-br from-emerald-50/90 to-teal-50/70 flex flex-col justify-between space-y-3 hover:bg-emerald-50 transition">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-emerald-800 font-extrabold text-xs uppercase tracking-wider">
+                      <Coins className="w-4 h-4 text-emerald-700" />
+                      <span>Total Saldo Kas</span>
+                    </div>
+                    <span className="text-[10px] px-2.5 py-0.5 rounded-lg bg-emerald-700 text-white font-bold tracking-wide shadow-xs">
+                      Jariyah + Infaq
+                    </span>
                   </div>
-                  <span className="text-[10px] px-2.5 py-0.5 rounded-lg bg-emerald-700 text-white font-bold tracking-wide shadow-xs">
-                    Jariyah + Infaq
-                  </span>
+                  <div>
+                    <span className="text-[11px] font-bold text-slate-900">Total Akumulasi Seluruh Kas:</span>
+                    <h4 className="text-xl sm:text-2xl lg:text-[26px] font-black text-slate-900 mt-0.5 tracking-tight">
+                      {portalData?.keuangan ? formatRupiah(portalData.keuangan.totalKas) : "..."}
+                    </h4>
+                  </div>
+                  <p className="text-[11px] text-emerald-800/80 pt-2 border-t border-emerald-200/80 leading-relaxed font-medium">
+                    Gabungan Kas Jariyah & Kas Infaq tersimpan akuntabel.
+                  </p>
                 </div>
-                <div>
-                  <span className="text-[11px] font-bold text-slate-900">Total Akumulasi Seluruh Kas:</span>
-                  <h4 className="text-xl sm:text-2xl lg:text-[26px] font-black text-slate-900 mt-0.5 tracking-tight">
-                    {portalData?.keuangan ? formatRupiah(portalData.keuangan.totalKas) : "..."}
-                  </h4>
-                </div>
-                <p className="text-[11px] text-emerald-800/80 pt-2 border-t border-emerald-200/80 leading-relaxed font-medium">
-                  Gabungan Kas Jariyah & Kas Infaq tersimpan akuntabel.
-                </p>
               </div>
             </div>
 
@@ -708,13 +711,7 @@ function LoginContent() {
             {Boolean(portalData?.keuangan?.transaksiTerkini && portalData.keuangan.transaksiTerkini.length > 0) && (
               <div className="bg-white/60 backdrop-blur-md rounded-3xl p-5 border border-white/70 shadow-[0_4px_20px_rgba(0,0,0,0.03)] space-y-3.5">
                 <div className="flex items-center justify-between text-xs text-slate-900 font-semibold">
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-slate-900 text-sm">Catatan Transaksi Terakhir</span>
-                    <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-bold border border-emerald-200/80">
-                      5 Transaksi Terkini
-                    </span>
-                  </div>
-                  <span className="text-[11px] font-bold text-slate-800">Terverifikasi Takmir</span>
+                  <h4 className="font-bold text-slate-900 text-sm sm:text-base">Catatan Transaksi Terakhir</h4>
                 </div>
 
                 <div className="overflow-x-auto rounded-2xl border border-white/70 bg-white/60 shadow-2xs">
@@ -836,6 +833,16 @@ function LoginContent() {
                   <Maximize2 className="w-3.5 h-3.5" /> Perbesar QRIS
                 </span>
               </div>
+            </div>
+
+            {/* Logo Layanan Pembayaran QRIS */}
+            <div className="w-full max-w-[280px] sm:max-w-[310px] flex items-center justify-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/qris-payment-methods.png"
+                alt="Layanan Pembayaran QRIS (GoPay, OVO, DANA, ShopeePay, BCA Mobile)"
+                className="w-full max-w-[230px] sm:max-w-[260px] h-auto object-contain drop-shadow-2xs"
+              />
             </div>
 
             {/* Opsi Rekening Transfer Bank jika diatur */}
@@ -1079,68 +1086,31 @@ function LoginContent() {
         </div>
       </section>
 
-      {/* 8. CALL TO ACTION BANNER */}
-      <div className="relative z-10 isolate bg-gradient-to-r from-emerald-700 via-emerald-800 to-[#16171b] text-white p-6 sm:p-8 rounded-3xl shadow-lg shadow-emerald-950/20 flex flex-col md:flex-row items-center justify-between gap-6">
-        <div className="flex items-center gap-4 text-center md:text-left">
-          <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-white flex-shrink-0 mx-auto md:mx-0">
-            <HeartHandshake className="w-6 h-6 text-emerald-300" />
-          </div>
-          <div>
-            <h4 className="text-lg sm:text-xl font-bold">
-              Mari Berpartisipasi Memakmurkan Masjid
-            </h4>
-            <p className="text-xs text-emerald-100/80 mt-0.5">
-              Salurkan infaq terbaik Anda atau sampaikan masukan demi kemajuan ibadah bersama di Baitul Maghfirah.
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <a
-            href="#transparansi-kas"
-            onClick={(e) => scrollToSection(e, "transparansi-kas")}
-            className="inline-flex items-center gap-2 bg-white hover:bg-emerald-50 text-emerald-900 text-xs sm:text-sm font-semibold px-4 py-2.5 rounded-2xl shadow-sm transition active:scale-95 cursor-pointer"
-          >
-            <Coins className="w-4 h-4 text-emerald-600" />
-            <span>Infaq Sekarang</span>
-          </a>
-          <a
-            href="#saran-aspirasi"
-            onClick={(e) => scrollToSection(e, "saran-aspirasi")}
-            className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white text-xs sm:text-sm font-semibold px-4 py-2.5 rounded-2xl border border-white/20 transition active:scale-95 cursor-pointer"
-          >
-            <MessageSquareHeart className="w-4 h-4 text-emerald-300" />
-            <span>Kirim Masukan</span>
-          </a>
-        </div>
-      </div>
 
       {/* ========================================================= */}
       {/* 5. SECTION: KOTAK SARAN & ASPIRASI JAMAAH                 */}
       {/* ========================================================= */}
       <section id="saran-aspirasi" className="scroll-mt-36 sm:scroll-mt-44 bg-white/20 backdrop-blur-md rounded-3xl p-6 sm:p-8 border border-white/80 shadow-[0_4px_20px_rgba(0,0,0,0.03)] space-y-6">
         {/* Header Section Saran & Aspirasi */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
-          <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center flex-shrink-0 border border-amber-200/80 shadow-sm">
-              <MessageSquareHeart className="w-6 h-6" />
+        <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-5 sm:p-6 border border-slate-200/90 shadow-xs flex flex-col items-center text-center justify-center gap-3">
+          <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center flex-shrink-0 border border-amber-200/80 shadow-sm">
+            <MessageSquareHeart className="w-6 h-6" />
+          </div>
+          <div className="flex flex-col items-center text-center">
+            <div className="flex items-center justify-center gap-2 text-amber-700 font-bold text-xs uppercase tracking-wider mb-0.5">
+              <span>Partisipasi & Masukan</span>
             </div>
-            <div>
-              <div className="flex items-center gap-2 text-amber-700 font-bold text-xs uppercase tracking-wider mb-0.5">
-                <span>Partisipasi & Masukan</span>
-              </div>
-              <h3 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-slate-900 tracking-tight">
-                Kotak Saran & Aspirasi Jamaah
-              </h3>
-              <p className="text-xs sm:text-sm text-slate-800 font-medium mt-0.5">
-                Masukan Anda diteruskan ke pengurus terkait: Administrasi, Ibadah & Dakwah, atau Keuangan Kas.
-              </p>
-            </div>
+            <h3 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-slate-900 tracking-tight">
+              Saran & Aspirasi Jamaah
+            </h3>
+            <p className="text-xs sm:text-sm text-slate-800 font-medium mt-1 max-w-xl text-center">
+              Masukan Anda diteruskan ke pengurus terkait: Administrasi, Ibadah & Dakwah, atau Keuangan Kas.
+            </p>
           </div>
         </div>
 
         {saranSuccessMsg && (
-          <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs sm:text-sm flex items-start gap-3 font-semibold">
+          <div className="max-w-3xl mx-auto p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs sm:text-sm flex items-start gap-3 font-semibold">
             <CheckCircle2 className="w-5 h-5 flex-shrink-0 text-emerald-600 mt-0.5" />
             <div>
               <p>{saranSuccessMsg}</p>
@@ -1150,13 +1120,13 @@ function LoginContent() {
         )}
 
         {saranErrorMsg && (
-          <div className="p-4 rounded-2xl bg-red-50 border border-red-200 text-red-900 text-xs sm:text-sm flex items-center gap-2.5 font-semibold">
+          <div className="max-w-3xl mx-auto p-4 rounded-2xl bg-red-50 border border-red-200 text-red-900 text-xs sm:text-sm flex items-center gap-2.5 font-semibold">
             <AlertCircle className="w-5 h-5 flex-shrink-0 text-red-600" />
             <span>{saranErrorMsg}</span>
           </div>
         )}
 
-        <form onSubmit={handleSubmitSaran} className="space-y-4 max-w-3xl">
+        <form onSubmit={handleSubmitSaran} className="space-y-4 max-w-3xl mx-auto">
           {/* Pilihan Kategori */}
           <div>
             <label className="block text-xs font-bold text-slate-900 mb-2">
@@ -1505,6 +1475,16 @@ function LoginContent() {
                 src={qrisData.qrisImageUrl || "/qris-masjid.png"}
                 alt="QRIS Masjid Baitul Maghfirah"
                 className="w-full h-auto object-contain mx-auto block"
+              />
+            </div>
+
+            {/* Logo Layanan Pembayaran QRIS */}
+            <div className="w-full flex items-center justify-center pt-1">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/qris-payment-methods.png"
+                alt="Layanan Pembayaran QRIS (GoPay, OVO, DANA, ShopeePay, BCA Mobile)"
+                className="w-full max-w-[240px] sm:max-w-[270px] h-auto object-contain drop-shadow-2xs"
               />
             </div>
 
