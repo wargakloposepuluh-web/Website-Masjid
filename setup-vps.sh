@@ -68,16 +68,32 @@ export DEBIAN_FRONTEND=noninteractive
 apt-get update -y
 apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release git ufw nginx certbot python3-certbot-nginx
 
-# Pastikan Docker terinstall
+# Pastikan Docker & Docker Compose terinstall
 if ! command -v docker &> /dev/null; then
   echo -e "${YELLOW}Menginstall Docker Engine...${NC}"
-  apt-get install -y docker.io docker-compose
+  apt-get install -y docker.io docker-compose-plugin docker-compose 2>/dev/null || apt-get install -y docker.io
 fi
+
+# Pastikan perintah docker-compose tersedia (buat wrapper ke 'docker compose' jika v2)
+if ! command -v docker-compose &> /dev/null; then
+  apt-get install -y docker-compose-plugin 2>/dev/null || true
+  if ! command -v docker-compose &> /dev/null; then
+    cat << 'WRAPPER' > /usr/local/bin/docker-compose
+#!/bin/sh
+exec docker compose "$@"
+WRAPPER
+    chmod +x /usr/local/bin/docker-compose
+  fi
+fi
+
+# Nonaktifkan IPv6 pada Nginx default agar tidak error [::]:80
+rm -f /etc/nginx/sites-enabled/default 2>/dev/null || true
+sed -i 's/listen \[::\]:80/#listen [::]:80/g' /etc/nginx/sites-available/default 2>/dev/null || true
 
 systemctl enable docker
 systemctl start docker
 systemctl enable nginx
-systemctl start nginx
+systemctl restart nginx 2>/dev/null || true
 
 # 5. Persiapan Direktori & Permission Storage
 echo -e "\n${BLUE}[4/8] Menyiapkan Folder Database & Upload...${NC}"
