@@ -519,6 +519,16 @@ function LoginContent() {
               >
                 <span>Fasilitas</span>
               </a>
+              {Boolean(portalData?.displaySlides && portalData.displaySlides.length > 0) && (
+                <a
+                  href="#informasi-visual"
+                  onClick={(e) => scrollToSection(e, "informasi-visual")}
+                  className="hover:text-emerald-700 hover:bg-emerald-50 px-2 sm:px-3 py-1 rounded-xl transition cursor-pointer"
+                >
+                  <span className="sm:hidden">Informasi</span>
+                  <span className="hidden sm:inline">Pengumuman & Poster</span>
+                </a>
+              )}
               <a
                 href="#agenda-ibadah"
                 onClick={(e) => scrollToSection(e, "agenda-ibadah")}
@@ -951,6 +961,30 @@ function LoginContent() {
           </div>
         </div>
       </section>
+
+      {/* ========================================================= */}
+      {/* SECTION: INFORMASI VISUAL (TAMPIL PENUH TANPA HEADER & KETERANGAN) */}
+      {/* ========================================================= */}
+      {Boolean(portalData?.displaySlides && portalData.displaySlides.length > 0) && (
+        <section id="informasi-visual" className="scroll-mt-36 sm:scroll-mt-44 space-y-6">
+          <div className="space-y-6">
+            {portalData.displaySlides.map((slide: { id: number; fotoUrl: string }) => (
+              <div
+                key={slide.id}
+                className="w-full rounded-3xl overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.06)] border border-white/80 bg-slate-950 flex items-center justify-center"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={slide.fotoUrl}
+                  alt="Slide Informasi Masjid"
+                  className="w-full h-auto max-h-[85vh] object-contain block"
+                />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* ========================================================= */}
       {/* 4. SECTION: KEGIATAN MASJID & AGENDA DAKWAH               */}
       {/* ========================================================= */}

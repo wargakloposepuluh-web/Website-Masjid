@@ -85,7 +85,8 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/api/surat-masuk") ||
     pathname.startsWith("/api/pengurus") ||
     pathname.startsWith("/api/fasilitas") ||
-    pathname.startsWith("/api/pengaturan/running-text")
+    pathname.startsWith("/api/pengaturan/running-text") ||
+    pathname.startsWith("/api/display-slides")
   ) {
     if (role !== "SUPER_ADMIN" && role !== "ADMIN_SURAT") {
       if (pathname.startsWith("/api")) {

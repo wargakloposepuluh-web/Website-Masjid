@@ -142,6 +142,18 @@ export async function GET() {
       },
     });
 
+    // 7. Slide Display TV & Web Publik Aktif
+    const displaySlides = await prisma.displaySlide.findMany({
+      where: { isActive: true },
+      orderBy: { urutan: "asc" },
+      select: {
+        id: true,
+        judul: true,
+        fotoUrl: true,
+        urutan: true,
+      },
+    });
+
     return NextResponse.json({
       success: true,
       data: {
@@ -184,6 +196,7 @@ export async function GET() {
           tampilkanSaldo: setting?.tampilkanSaldoRT !== false,
           kecepatan: setting?.kecepatanRT || 40,
         },
+        displaySlides,
       },
     });
   } catch (error: any) {

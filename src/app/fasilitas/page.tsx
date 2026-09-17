@@ -7,7 +7,7 @@ import {
   MapPin, Clock, Calendar, Smile, MessageSquare, Globe, Zap,
   Save, Plus, Pencil, Trash2, GripVertical, Eye, EyeOff,
   Upload, Tv, RefreshCw, ChevronUp, ChevronDown, CheckCircle,
-  AlertCircle, X, ToggleLeft, ToggleRight
+  AlertCircle, X, ToggleLeft, ToggleRight, MonitorPlay, Image as ImageIcon, ExternalLink
 } from "lucide-react";
 
 // Daftar ikon tersedia
@@ -61,7 +61,15 @@ interface RunningTextSetting {
   kecepatanRT: number;
 }
 
-type ActiveTab = "fasilitas" | "running-text";
+interface SlideItem {
+  id: number;
+  judul: string | null;
+  fotoUrl: string;
+  urutan: number;
+  isActive: boolean;
+}
+
+type ActiveTab = "fasilitas" | "slides" | "running-text";
 
 export default function FasilitasPage() {
   const [activeTab, setActiveTab] = useState<ActiveTab>("fasilitas");
@@ -90,6 +98,21 @@ export default function FasilitasPage() {
   const [uploadingItemFoto, setUploadingItemFoto] = useState(false);
   const [savingItem, setSavingItem] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+
+  // === SLIDES STATE ===
+  const [slides, setSlides] = useState<SlideItem[]>([]);
+  const [loadingSlides, setLoadingSlides] = useState(true);
+  const [showSlideModal, setShowSlideModal] = useState(false);
+  const [editSlideItem, setEditSlideItem] = useState<SlideItem | null>(null);
+  const [slideFormData, setSlideFormData] = useState({
+    judul: "",
+    fotoUrl: "",
+    urutan: 0,
+    isActive: true,
+  });
+  const [uploadingSlideFoto, setUploadingSlideFoto] = useState(false);
+  const [savingSlide, setSavingSlide] = useState(false);
+  const [deletingSlideId, setDeletingSlideId] = useState<number | null>(null);
 
   // === RUNNING TEXT STATE ===
   const [rtSetting, setRtSetting] = useState<RunningTextSetting>({
@@ -150,10 +173,24 @@ export default function FasilitasPage() {
     }
   }, []);
 
+  const loadSlides = useCallback(async () => {
+    setLoadingSlides(true);
+    try {
+      const res = await fetch("/api/display-slides");
+      const data = await res.json();
+      setSlides(data.slides || []);
+    } catch {
+      showToast("error", "Gagal memuat slide display");
+    } finally {
+      setLoadingSlides(false);
+    }
+  }, []);
+
   useEffect(() => {
     loadFasilitas();
     loadRunningText();
-  }, [loadFasilitas, loadRunningText]);
+    loadSlides();
+  }, [loadFasilitas, loadRunningText, loadSlides]);
 
   // ========================
   // FASILITAS HANDLERS
@@ -341,6 +378,148 @@ export default function FasilitasPage() {
   };
 
   // ========================
+  // SLIDE DISPLAY HANDLERS
+  // ========================
+  const openAddSlideModal = () => {
+    setEditSlideItem(null);
+    setSlideFormData({ judul: "", fotoUrl: "", urutan: slides.length, isActive: true });
+    setShowSlideModal(true);
+  };
+
+  const openEditSlideModal = (item: SlideItem) => {
+    setEditSlideItem(item);
+    setSlideFormData({
+      judul: item.judul || "",
+      fotoUrl: item.fotoUrl,
+      urutan: item.urutan,
+      isActive: item.isActive,
+    });
+    setShowSlideModal(true);
+  };
+
+  const handleUploadSlideFoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const fd = new FormData();
+    fd.append("file", file);
+    setUploadingSlideFoto(true);
+    try {
+      const res = await fetch("/api/upload", { method: "POST", body: fd });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Gagal upload foto");
+      setSlideFormData((prev) => ({ ...prev, fotoUrl: data.url }));
+      showToast("success", "Foto slide berhasil diunggah");
+    } catch {
+      showToast("error", "Gagal upload foto slide");
+    } finally {
+      setUploadingSlideFoto(false);
+    }
+  };
+
+  const handleSaveSlide = async () => {
+    if (!slideFormData.fotoUrl.trim()) {
+      showToast("error", "Foto slide wajib diunggah!");
+      return;
+    }
+    setSavingSlide(true);
+    try {
+      if (editSlideItem) {
+        const res = await fetch("/api/display-slides", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: editSlideItem.id, ...slideFormData }),
+        });
+        if (!res.ok) throw new Error();
+        showToast("success", "Slide berhasil diperbarui");
+      } else {
+        const res = await fetch("/api/display-slides", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(slideFormData),
+        });
+        if (!res.ok) throw new Error();
+        showToast("success", "Slide baru berhasil ditambahkan");
+      }
+      setShowSlideModal(false);
+      loadSlides();
+    } catch {
+      showToast("error", "Gagal menyimpan slide");
+    } finally {
+      setSavingSlide(false);
+    }
+  };
+
+  const handleDeleteSlide = async (id: number) => {
+    if (!confirm("Hapus slide ini?")) return;
+    setDeletingSlideId(id);
+    try {
+      const res = await fetch(`/api/display-slides?id=${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error();
+      showToast("success", "Slide berhasil dihapus");
+      loadSlides();
+    } catch {
+      showToast("error", "Gagal menghapus slide");
+    } finally {
+      setDeletingSlideId(null);
+    }
+  };
+
+  const handleToggleActiveSlide = async (item: SlideItem) => {
+    try {
+      await fetch("/api/display-slides", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: item.id,
+          fotoUrl: item.fotoUrl,
+          judul: item.judul,
+          urutan: item.urutan,
+          isActive: !item.isActive,
+        }),
+      });
+      loadSlides();
+    } catch {
+      showToast("error", "Gagal mengubah status slide");
+    }
+  };
+
+  const handleMoveSlideOrder = async (item: SlideItem, direction: "up" | "down") => {
+    const idx = slides.findIndex((s) => s.id === item.id);
+    const swapIdx = direction === "up" ? idx - 1 : idx + 1;
+    if (swapIdx < 0 || swapIdx >= slides.length) return;
+    const other = slides[swapIdx];
+    try {
+      await Promise.all([
+        fetch("/api/display-slides", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: item.id,
+            fotoUrl: item.fotoUrl,
+            judul: item.judul,
+            urutan: other.urutan,
+            isActive: item.isActive,
+          }),
+        }),
+        fetch("/api/display-slides", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: other.id,
+            fotoUrl: other.fotoUrl,
+            judul: other.judul,
+            urutan: item.urutan,
+            isActive: other.isActive,
+          }),
+        }),
+      ]);
+      loadSlides();
+    } catch {
+      showToast("error", "Gagal mengubah urutan slide");
+    }
+  };
+
+  // ========================
   // RUNNING TEXT HANDLERS
   // ========================
   const handleSaveRT = async () => {
@@ -378,16 +557,16 @@ export default function FasilitasPage() {
           </div>
           <div>
             <h1 className="text-xl font-bold text-gray-900">Fasilitas & TV Display</h1>
-            <p className="text-sm text-gray-500">Kelola konten Fasilitas & Pelayanan dan Running Text TV Display</p>
+            <p className="text-sm text-gray-500">Kelola Fasilitas Masjid, Slide Foto TV Display & Web, serta Running Text</p>
           </div>
         </div>
       </div>
 
       {/* Tab */}
-      <div className="flex gap-2 mb-6 border-b border-gray-200">
+      <div className="flex gap-2 mb-6 border-b border-gray-200 overflow-x-auto">
         <button
           onClick={() => setActiveTab("fasilitas")}
-          className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+          className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${
             activeTab === "fasilitas"
               ? "border-green-600 text-green-700"
               : "border-transparent text-gray-500 hover:text-gray-700"
@@ -397,8 +576,24 @@ export default function FasilitasPage() {
           Fasilitas & Pelayanan
         </button>
         <button
+          onClick={() => setActiveTab("slides")}
+          className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${
+            activeTab === "slides"
+              ? "border-green-600 text-green-700"
+              : "border-transparent text-gray-500 hover:text-gray-700"
+          }`}
+        >
+          <MonitorPlay className="w-4 h-4" />
+          Slide Foto TV & Web
+          {slides.length > 0 && (
+            <span className="ml-1 px-1.5 py-0.2 bg-green-100 text-green-700 text-[11px] font-bold rounded-full">
+              {slides.length}
+            </span>
+          )}
+        </button>
+        <button
           onClick={() => setActiveTab("running-text")}
-          className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+          className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${
             activeTab === "running-text"
               ? "border-green-600 text-green-700"
               : "border-transparent text-gray-500 hover:text-gray-700"
@@ -587,6 +782,179 @@ export default function FasilitasPage() {
                 })}
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ==================== TAB: SLIDE FOTO DISPLAY ==================== */}
+      {activeTab === "slides" && (
+        <div className="space-y-6">
+          {/* Card Daftar Slide */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+              <div>
+                <h2 className="font-semibold text-gray-800 flex items-center gap-2">
+                  <MonitorPlay className="w-4 h-4 text-green-600" />
+                  Slide Foto & Poster TV Display
+                </h2>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  Upload flyer kajian, poster pengumuman, atau foto kegiatan untuk ditampilkan bergantian di layar TV Display masjid dan halaman web publik.
+                </p>
+              </div>
+              <button
+                onClick={openAddSlideModal}
+                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl text-sm font-medium shrink-0 shadow-sm"
+              >
+                <Plus className="w-4 h-4" />
+                Tambah Slide Baru
+              </button>
+            </div>
+
+            {loadingSlides ? (
+              <div className="flex items-center justify-center py-12">
+                <RefreshCw className="w-6 h-6 animate-spin text-green-600" />
+              </div>
+            ) : slides.length === 0 ? (
+              <div className="text-center py-12 border-2 border-dashed border-gray-200 rounded-2xl">
+                <ImageIcon className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                <p className="text-sm font-semibold text-gray-600">Belum Ada Slide Foto</p>
+                <p className="text-xs text-gray-400 max-w-sm mx-auto mt-1 mb-4">
+                  Tambahkan slide baru berisi foto poster kegiatan atau informasi masjid untuk ditampilkan di TV Display dan web.
+                </p>
+                <button
+                  onClick={openAddSlideModal}
+                  className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl text-xs font-semibold"
+                >
+                  <Plus className="w-4 h-4" />
+                  Tambah Slide Baru
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {slides.map((item, idx) => (
+                  <div
+                    key={item.id}
+                    className={`rounded-2xl border transition-all overflow-hidden flex flex-col bg-white ${
+                      item.isActive ? "border-gray-200 shadow-sm" : "border-gray-200 opacity-60 bg-gray-50"
+                    }`}
+                  >
+                    {/* Gambar Preview */}
+                    <div className="relative aspect-video w-full bg-slate-900 flex items-center justify-center overflow-hidden">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={item.fotoUrl}
+                        alt={item.judul || "Slide foto"}
+                        className="w-full h-full object-contain"
+                      />
+                      <div className="absolute top-2 left-2">
+                        <span className="px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-sm text-white text-[10px] font-mono font-semibold">
+                          Slide #{idx + 1}
+                        </span>
+                      </div>
+                      <div className="absolute top-2 right-2">
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-semibold backdrop-blur-sm ${
+                            item.isActive
+                              ? "bg-emerald-500/90 text-white"
+                              : "bg-gray-700/90 text-gray-300"
+                          }`}
+                        >
+                          {item.isActive ? "Aktif" : "Nonaktif"}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Konten & Aksi */}
+                    <div className="p-4 flex flex-col justify-between flex-1 gap-3">
+                      <div>
+                        <h4 className="font-semibold text-gray-800 text-sm line-clamp-1">
+                          {item.judul || <span className="text-gray-400 italic">Slide Tanpa Judul</span>}
+                        </h4>
+                        <p className="text-[11px] text-gray-400 mt-0.5">
+                          Tampil di TV Display & Web Publik
+                        </p>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                        {/* Urutan */}
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => handleMoveSlideOrder(item, "up")}
+                            disabled={idx === 0}
+                            className="p-1.5 text-gray-400 hover:text-gray-700 disabled:opacity-20 rounded"
+                            title="Pindah ke Kiri / Naik"
+                          >
+                            <ChevronUp className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleMoveSlideOrder(item, "down")}
+                            disabled={idx === slides.length - 1}
+                            className="p-1.5 text-gray-400 hover:text-gray-700 disabled:opacity-20 rounded"
+                            title="Pindah ke Kanan / Turun"
+                          >
+                            <ChevronDown className="w-4 h-4" />
+                          </button>
+                        </div>
+
+                        {/* Aksi */}
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => handleToggleActiveSlide(item)}
+                            className={`p-1.5 rounded ${
+                              item.isActive ? "text-green-600 hover:text-green-700" : "text-gray-400 hover:text-gray-600"
+                            }`}
+                            title={item.isActive ? "Sembunyikan" : "Tampilkan"}
+                          >
+                            {item.isActive ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                          </button>
+                          <button
+                            onClick={() => openEditSlideModal(item)}
+                            className="p-1.5 text-blue-500 hover:text-blue-700 rounded"
+                            title="Edit"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteSlide(item.id)}
+                            disabled={deletingSlideId === item.id}
+                            className="p-1.5 text-red-400 hover:text-red-600 disabled:opacity-50 rounded"
+                            title="Hapus"
+                          >
+                            {deletingSlideId === item.id ? (
+                              <RefreshCw className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="w-4 h-4" />
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Banner Info */}
+          <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-emerald-100 rounded-xl text-emerald-700 shrink-0">
+                <Tv className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-emerald-900">Lihat Tampilan TV Display</p>
+                <p className="text-xs text-emerald-700">Slide aktif akan diputar secara otomatis di TV Display masjid setiap beberapa detik.</p>
+              </div>
+            </div>
+            <a
+              href="/display"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shrink-0"
+            >
+              <span>Buka Layar TV</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
           </div>
         </div>
       )}
@@ -875,6 +1243,155 @@ export default function FasilitasPage() {
               >
                 {savingItem ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                 {editItem ? "Simpan Perubahan" : "Tambahkan"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ==================== MODAL TAMBAH/EDIT SLIDE FOTO ==================== */}
+      {showSlideModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] flex flex-col">
+            {/* Header Modal */}
+            <div className="flex items-center justify-between p-5 border-b border-gray-100 shrink-0">
+              <h3 className="font-semibold text-gray-800">
+                {editSlideItem ? "Edit Slide Foto" : "Tambah Slide Foto Baru"}
+              </h3>
+              <button onClick={() => setShowSlideModal(false)} className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Body Modal */}
+            <div className="p-5 space-y-4 overflow-y-auto flex-1">
+              {/* Upload Foto (Utama) */}
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                  Upload Foto / Poster Slide *
+                </label>
+                {slideFormData.fotoUrl ? (
+                  <div className="relative rounded-2xl border border-gray-200 overflow-hidden bg-slate-900 mb-2 aspect-video flex items-center justify-center">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={slideFormData.fotoUrl}
+                      alt="Preview slide"
+                      className="w-full h-full object-contain"
+                    />
+                    <div className="absolute top-2 right-2 flex gap-1.5">
+                      <label
+                        htmlFor="ganti-foto-slide"
+                        className="px-2.5 py-1 bg-black/70 hover:bg-black/90 text-white rounded-lg cursor-pointer transition text-xs flex items-center gap-1 backdrop-blur-sm shadow"
+                      >
+                        <Upload className="w-3.5 h-3.5" />
+                        <span>Ganti</span>
+                        <input
+                          id="ganti-foto-slide"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleUploadSlideFoto}
+                          className="hidden"
+                        />
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setSlideFormData((p) => ({ ...p, fotoUrl: "" }))}
+                        className="px-2.5 py-1 bg-red-600/80 hover:bg-red-700 text-white rounded-lg transition text-xs flex items-center gap-1 backdrop-blur-sm shadow"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                        <span>Hapus</span>
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <label
+                    className={`flex flex-col items-center justify-center border-2 border-dashed border-gray-300 hover:border-green-500 rounded-2xl p-6 cursor-pointer transition bg-gray-50/50 hover:bg-green-50/20 ${
+                      uploadingSlideFoto ? "opacity-50 pointer-events-none" : ""
+                    }`}
+                  >
+                    {uploadingSlideFoto ? (
+                      <div className="flex items-center gap-2 text-xs text-green-600 py-4">
+                        <RefreshCw className="w-5 h-5 animate-spin" />
+                        <span className="font-medium">Mengunggah foto...</span>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center gap-2 py-3 text-center">
+                        <div className="p-3 bg-green-100 text-green-700 rounded-2xl">
+                          <Upload className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <span className="text-sm font-semibold text-gray-700 block">
+                            Pilih Foto / Poster
+                          </span>
+                          <span className="text-[11px] text-gray-400">
+                            Format JPG, PNG, atau WebP. Dianjurkan rasio 16:9 untuk TV Display.
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleUploadSlideFoto}
+                      disabled={uploadingSlideFoto}
+                      className="hidden"
+                    />
+                  </label>
+                )}
+              </div>
+
+              {/* Judul/Label Admin (Opsional) */}
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">
+                  Nama / Label Slide (Opsional)
+                </label>
+                <input
+                  type="text"
+                  value={slideFormData.judul}
+                  onChange={(e) => setSlideFormData((p) => ({ ...p, judul: e.target.value }))}
+                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                  placeholder="Misal: Poster Kajian Ramadhan / Flyer Qurban"
+                />
+                <p className="text-[11px] text-gray-400 mt-1">
+                  Hanya sebagai label pengenal di daftar admin. Di TV Display dan Web Publik, foto tampil penuh tanpa teks/keterangan.
+                </p>
+              </div>
+
+              {/* Status Tampil */}
+              <div className="flex items-center justify-between pt-1">
+                <label className="text-xs font-medium text-gray-600">Status Tampil</label>
+                <button
+                  onClick={() => setSlideFormData((p) => ({ ...p, isActive: !p.isActive }))}
+                  className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                    slideFormData.isActive
+                      ? "bg-green-100 text-green-700"
+                      : "bg-gray-100 text-gray-600"
+                  }`}
+                >
+                  {slideFormData.isActive ? (
+                    <><Eye className="w-3.5 h-3.5" /> Aktif (Tampil)</>
+                  ) : (
+                    <><EyeOff className="w-3.5 h-3.5" /> Nonaktif (Sembunyi)</>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Footer Modal */}
+            <div className="flex gap-3 p-5 border-t border-gray-100 shrink-0">
+              <button
+                onClick={() => setShowSlideModal(false)}
+                className="flex-1 border border-gray-200 text-gray-600 hover:bg-gray-50 px-4 py-2 rounded-xl text-sm font-medium"
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleSaveSlide}
+                disabled={savingSlide || uploadingSlideFoto || !slideFormData.fotoUrl}
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-50 shadow-sm"
+              >
+                {savingSlide ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                {editSlideItem ? "Simpan Perubahan" : "Tambahkan Slide"}
               </button>
             </div>
           </div>

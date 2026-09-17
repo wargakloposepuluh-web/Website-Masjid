@@ -232,7 +232,12 @@ export default function MosqueTvDisplayPage() {
   };
 
   // Bangun Slide Dinamis
-  const slides: { type: "KEUANGAN" | "FASILITAS" | "JUMAT_AGENDA"; title: string; subtitle?: string }[] = [
+  const baseSlides: {
+    type: "KEUANGAN" | "FASILITAS" | "JUMAT_AGENDA" | "CUSTOM_PHOTO";
+    title: string;
+    subtitle?: string;
+    fotoUrl?: string;
+  }[] = [
     {
       type: "KEUANGAN",
       title: "KEUANGAN MASJID",
@@ -249,6 +254,20 @@ export default function MosqueTvDisplayPage() {
       subtitle: "Petugas Jum'at terdekat dan jadwal kegiatan dakwah ibadah masjid",
     },
   ];
+
+  const customPhotoSlides: {
+    type: "CUSTOM_PHOTO";
+    title: string;
+    subtitle?: string;
+    fotoUrl?: string;
+  }[] = (portalData?.displaySlides || []).map((s: any) => ({
+    type: "CUSTOM_PHOTO" as const,
+    title: s.judul || "Informasi & Pengumuman",
+    subtitle: "Masjid Baitul Maghfirah",
+    fotoUrl: s.fotoUrl,
+  }));
+
+  const slides = [...baseSlides, ...customPhotoSlides];
 
   useEffect(() => {
     if (isPaused || isPrayerTimeActive || simulationModeSholat || slides.length === 0) return;
@@ -520,34 +539,38 @@ export default function MosqueTvDisplayPage() {
             </header>
 
             {/* 2. SLIDE AREA (UTAMA) */}
-            <div className="flex-1 bg-white/20 backdrop-blur-md rounded-2xl border border-white/80 shadow-[0_4px_20px_rgba(0,0,0,0.03)] p-4 sm:p-5 flex flex-col min-h-0 overflow-hidden relative">
+            <div className={`flex-1 bg-white/20 backdrop-blur-md rounded-2xl border border-white/80 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-col min-h-0 overflow-hidden relative ${
+              currentSlide.type === "CUSTOM_PHOTO" ? "p-0 bg-black/90" : "p-4 sm:p-5"
+            }`}>
               
-              {/* Header Slide (Berwarna Hijau Rata Tengah seperti Web Publik) */}
-              <div className="flex-shrink-0 bg-emerald-600 rounded-xl py-2.5 px-4 mb-3 text-center shadow-xs flex items-center justify-between gap-2 border border-emerald-500/50">
-                <div className="flex items-center gap-1.5">
-                  {/* Indikator Slide Bulat */}
-                  {slides.map((_, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => setCurrentSlideIndex(idx)}
-                      className={`h-2 rounded-full transition-all ${idx === currentSlideIndex ? "w-5 bg-white" : "w-2 bg-white/40"}`}
-                    />
-                  ))}
+              {/* Header Slide (Hanya tampil untuk slide standar, tidak untuk slide foto penuh) */}
+              {currentSlide.type !== "CUSTOM_PHOTO" && (
+                <div className="flex-shrink-0 bg-emerald-600 rounded-xl py-2.5 px-4 mb-3 text-center shadow-xs flex items-center justify-between gap-2 border border-emerald-500/50">
+                  <div className="flex items-center gap-1.5">
+                    {/* Indikator Slide Bulat */}
+                    {slides.map((_, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setCurrentSlideIndex(idx)}
+                        className={`h-2 rounded-full transition-all ${idx === currentSlideIndex ? "w-5 bg-white" : "w-2 bg-white/40"}`}
+                      />
+                    ))}
+                  </div>
+                  <div key={`title-${currentSlideIndex}`} className="flex-1 text-center animate-slide-smooth">
+                    <h2 className="text-base sm:text-lg lg:text-xl font-black text-white tracking-tight uppercase leading-tight">
+                      {currentSlide.title}
+                    </h2>
+                    {currentSlide.subtitle && (
+                      <p className="text-xs sm:text-sm text-emerald-100 font-semibold leading-snug line-clamp-1 mt-0.5">
+                        {currentSlide.subtitle}
+                      </p>
+                    )}
+                  </div>
+                  <div className="text-xs text-emerald-100 font-extrabold px-3 py-1 rounded-full bg-white/20">
+                    {currentSlideIndex + 1}/{slides.length}
+                  </div>
                 </div>
-                <div key={`title-${currentSlideIndex}`} className="flex-1 text-center animate-slide-smooth">
-                  <h2 className="text-base sm:text-lg lg:text-xl font-black text-white tracking-tight uppercase leading-tight">
-                    {currentSlide.title}
-                  </h2>
-                  {currentSlide.subtitle && (
-                    <p className="text-xs sm:text-sm text-emerald-100 font-semibold leading-snug line-clamp-1 mt-0.5">
-                      {currentSlide.subtitle}
-                    </p>
-                  )}
-                </div>
-                <div className="text-xs text-emerald-100 font-extrabold px-3 py-1 rounded-full bg-white/20">
-                  {currentSlideIndex + 1}/{slides.length}
-                </div>
-              </div>
+              )}
 
               {/* Konten Slide dengan Animasi Halus (Smooth Slide & Fade) */}
               <div
@@ -895,6 +918,17 @@ export default function MosqueTvDisplayPage() {
                   </div>
                 )}
 
+                {/* ---------------- SLIDE CUSTOM (FOTO / POSTER - TAMPIL PENUH TANPA KETERANGAN) ---------------- */}
+                {currentSlide.type === "CUSTOM_PHOTO" && currentSlide.fotoUrl && (
+                  <div className="h-full w-full overflow-hidden relative flex items-center justify-center bg-black">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={currentSlide.fotoUrl}
+                      alt="Slide Foto TV Display"
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                )}
               </div>
             </div>
 

@@ -219,3 +219,13 @@ model KritikSaran {
   @@index([kategori])
   @@index([status])
 }
+
+model DisplaySlide {
+  id        Int      @id @default(autoincrement())
+  judul     String?  // Judul atau label slide (opsional)
+  fotoUrl   String   // URL foto slide
+  urutan    Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
