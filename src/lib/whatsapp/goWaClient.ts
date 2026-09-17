@@ -208,26 +208,76 @@ class GoWhatsAppClient {
   }
 
   /**
+   * Mendapatkan atau mendaftarkan slot device 'masjid' otomatis di GOWA v9
+   */
+  public async getOrCreateDeviceId(): Promise<string> {
+    const { gatewayUrl, gatewayAuth } = await this.getConfig();
+
+    try {
+      // 1. Cek apakah sudah ada device terdaftar di /devices
+      const res = await fetch(`${gatewayUrl}/devices`, {
+        method: "GET",
+        headers: this.getHeaders(gatewayAuth),
+        cache: "no-store",
+      }).catch(() => null);
+
+      if (res && res.ok) {
+        const data = await res.json();
+        const devices = Array.isArray(data?.results) ? data.results : Array.isArray(data?.data) ? data.data : [];
+        if (devices.length > 0) {
+          const id = devices[0].id || devices[0].device_id || devices[0].name;
+          if (id) return id;
+        }
+      }
+
+      // 2. Jika belum ada slot, daftarkan slot device 'masjid' otomatis
+      const createRes = await fetch(`${gatewayUrl}/devices`, {
+        method: "POST",
+        headers: this.getHeaders(gatewayAuth, {
+          "Content-Type": "application/json",
+        }),
+        body: JSON.stringify({ device_id: "masjid" }),
+        cache: "no-store",
+      }).catch(() => null);
+
+      if (createRes && (createRes.ok || createRes.status === 200 || createRes.status === 201)) {
+        const createData = await createRes.json();
+        return createData?.results?.device_id || createData?.data?.device_id || "masjid";
+      }
+    } catch (err) {
+      console.error("Gagal getOrCreateDeviceId:", err);
+    }
+
+    return "masjid";
+  }
+
+  /**
    * Mengambil sesi login QR Code dari Go WhatsApp Web
    */
   public async getLoginQr(): Promise<{ status: WAConnectionStatus; qr: string | null; error?: string }> {
     const { gatewayUrl, gatewayAuth } = await this.getConfig();
 
     try {
-      // 1. Coba endpoint /app/login
-      let res = await fetch(`${gatewayUrl}/app/login`, {
+      const deviceId = await this.getOrCreateDeviceId();
+
+      // 1. Coba endpoint multi-device GOWA v9: /devices/:device_id/login
+      let res = await fetch(`${gatewayUrl}/devices/${deviceId}/login`, {
         method: "GET",
         headers: this.getHeaders(gatewayAuth),
         cache: "no-store",
       }).catch(() => null);
 
-      // 2. Jika gagal, coba fallback /devices/login
+      // 2. Jika gagal, coba fallback ke /app/login (GOWA legacy)
       if (!res || !res.ok) {
-        res = await fetch(`${gatewayUrl}/devices/login`, {
+        const legacyRes = await fetch(`${gatewayUrl}/app/login`, {
           method: "GET",
           headers: this.getHeaders(gatewayAuth),
           cache: "no-store",
         }).catch(() => null);
+
+        if (legacyRes && legacyRes.ok) {
+          res = legacyRes;
+        }
       }
 
       if (!res || !res.ok) {
@@ -305,10 +355,13 @@ class GoWhatsAppClient {
     const phone = this.formatPhoneNumber(options.recipientPhone);
 
     try {
+      const deviceId = await this.getOrCreateDeviceId();
+
       const res = await fetch(`${gatewayUrl}/send/message`, {
         method: "POST",
         headers: this.getHeaders(gatewayAuth, {
           "Content-Type": "application/json",
+          "X-Device-Id": deviceId,
         }),
         body: JSON.stringify({
           phone: `${phone}@s.whatsapp.net`,
@@ -350,6 +403,8 @@ class GoWhatsAppClient {
     const phone = this.formatPhoneNumber(options.recipientPhone);
 
     try {
+      const deviceId = await this.getOrCreateDeviceId();
+
       const formData = new FormData();
       formData.append("phone", `${phone}@s.whatsapp.net`);
       formData.append("caption", options.caption || "");
@@ -360,7 +415,9 @@ class GoWhatsAppClient {
 
       const res = await fetch(`${gatewayUrl}/send/file`, {
         method: "POST",
-        headers: this.getHeaders(gatewayAuth),
+        headers: this.getHeaders(gatewayAuth, {
+          "X-Device-Id": deviceId,
+        }),
         body: formData,
       });
 
@@ -392,15 +449,24 @@ class GoWhatsAppClient {
     const { gatewayUrl, gatewayAuth } = await this.getConfig();
 
     try {
-      const res = await fetch(`${gatewayUrl}/app/logout`, {
+      const deviceId = await this.getOrCreateDeviceId();
+
+      let res = await fetch(`${gatewayUrl}/devices/${deviceId}/logout`, {
         method: "POST",
         headers: this.getHeaders(gatewayAuth),
-      });
+      }).catch(() => null);
 
-      if (!res.ok) {
+      if (!res || !res.ok) {
+        res = await fetch(`${gatewayUrl}/app/logout`, {
+          method: "POST",
+          headers: this.getHeaders(gatewayAuth),
+        }).catch(() => null);
+      }
+
+      if (!res || !res.ok) {
         return {
           success: false,
-          error: `Gagal logout dari Gateway (HTTP ${res.status})`,
+          error: `Gagal logout dari Gateway (HTTP ${res ? res.status : "Offline"})`,
         };
       }
 
