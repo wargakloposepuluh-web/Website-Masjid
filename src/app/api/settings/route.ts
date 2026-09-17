@@ -66,6 +66,8 @@ export async function POST(request: Request) {
         stempelPosisiY: Number(body.stempelPosisiY) || -15,
         stempelUkuran: Number(body.stempelUkuran) || 105,
         stempelOpacity: Number(body.stempelOpacity) || 0.85,
+        waGatewayUrl: body.waGatewayUrl !== undefined ? body.waGatewayUrl : undefined,
+        waGatewayAuth: body.waGatewayAuth !== undefined ? body.waGatewayAuth : undefined,
       },
       create: {
         id: 1,

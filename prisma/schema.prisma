@@ -54,6 +54,8 @@ model Setting {
   runningText           String?
   tampilkanSaldoRT      Boolean  @default(true)
   kecepatanRT           Int      @default(40)
+  waGatewayUrl          String?  @default("http://127.0.0.1:3001")
+  waGatewayAuth         String?
   updatedAt             DateTime @updatedAt
 }
 

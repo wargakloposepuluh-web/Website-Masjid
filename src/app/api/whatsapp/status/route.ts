@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { waClient } from "@/lib/whatsapp/waClient";
+import { goWaClient } from "@/lib/whatsapp/goWaClient";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const status = waClient.getStatus();
+    const status = await goWaClient.getStatus();
     return NextResponse.json(status);
   } catch (error: any) {
     return NextResponse.json(
