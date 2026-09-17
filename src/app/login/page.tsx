@@ -896,16 +896,27 @@ function LoginContent() {
                 { id: 3, judul: "Petugas Sholat Jum'at", deskripsi: "Penjadwalan khotib, imam, dan bilal sholat Jum'at yang transparan dan terorganisir dengan tema khutbah mendidik.", icon: "Calendar" },
                 { id: 4, judul: "Infaq & Transparansi Kas", deskripsi: "Pencatatan kas jariyah dan infaq operasional yang akuntabel, serta kemudahan donasi digital via scan QRIS resmi.", icon: "Coins" },
               ]
-            ).map((item: { id: number; judul: string; deskripsi: string; icon: string }) => {
+            ).map((item: { id: number; judul: string; deskripsi: string; icon: string; fotoUrl?: string | null }) => {
               const IconComp = getIconForFasilitas(item.icon);
               return (
                 <div
                   key={item.id}
                   className="bg-white/60 backdrop-blur-md rounded-3xl p-5 border border-white/70 shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:bg-white/80 transition flex flex-col justify-between space-y-3"
                 >
-                  <div className="w-12 h-12 rounded-2xl bg-[#16171b] text-white flex items-center justify-center shadow-sm">
-                    <IconComp className="w-5 h-5" />
-                  </div>
+                  {item.fotoUrl ? (
+                    <div className="w-full h-36 rounded-2xl overflow-hidden shadow-sm relative bg-slate-100">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={item.fotoUrl}
+                        alt={item.judul}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-12 h-12 rounded-2xl bg-[#16171b] text-white flex items-center justify-center shadow-sm">
+                      <IconComp className="w-5 h-5" />
+                    </div>
+                  )}
                   <div>
                     <h4 className="text-sm sm:text-base font-bold text-slate-900">
                       {item.judul}

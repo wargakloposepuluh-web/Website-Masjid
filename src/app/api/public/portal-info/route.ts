@@ -137,6 +137,7 @@ export async function GET() {
         judul: true,
         deskripsi: true,
         icon: true,
+        fotoUrl: true,
         urutan: true,
       },
     });

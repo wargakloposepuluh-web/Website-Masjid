@@ -708,16 +708,27 @@ export default function MosqueTvDisplayPage() {
                         return (
                           <div
                             key={item.id}
-                            className="bg-white/60 backdrop-blur-md rounded-xl p-4 border border-white/70 shadow-2xs hover:bg-white/75 transition flex flex-col justify-between space-y-2"
+                            className="bg-white/60 backdrop-blur-md rounded-xl p-3 sm:p-4 border border-white/70 shadow-2xs hover:bg-white/75 transition flex flex-col justify-between space-y-2 overflow-hidden"
                           >
-                            <div className="w-12 h-12 rounded-xl bg-[#16171b] text-white flex items-center justify-center shadow-sm">
-                              <IconComp className="w-6 h-6" />
-                            </div>
-                            <div>
-                              <h4 className="text-base sm:text-lg font-black text-slate-900 leading-snug">
+                            {item.fotoUrl ? (
+                              <div className="w-full h-24 sm:h-28 rounded-lg overflow-hidden relative shadow-xs shrink-0 bg-slate-100">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={item.fotoUrl}
+                                  alt={item.judul}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                            ) : (
+                              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-[#16171b] text-white flex items-center justify-center shadow-sm shrink-0">
+                                <IconComp className="w-5 h-5 sm:w-6 sm:h-6" />
+                              </div>
+                            )}
+                            <div className="min-w-0">
+                              <h4 className="text-sm sm:text-base lg:text-lg font-black text-slate-900 leading-snug truncate">
                                 {item.judul}
                               </h4>
-                              <p className="text-xs sm:text-sm text-slate-600 font-medium mt-1 leading-relaxed line-clamp-3">
+                              <p className="text-xs sm:text-sm text-slate-600 font-medium mt-0.5 leading-relaxed line-clamp-2">
                                 {item.deskripsi}
                               </p>
                             </div>

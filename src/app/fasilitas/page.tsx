@@ -44,6 +44,7 @@ interface FasilitasItem {
   judul: string;
   deskripsi: string;
   icon: string;
+  fotoUrl?: string | null;
   urutan: number;
   isActive: boolean;
 }
@@ -78,7 +79,15 @@ export default function FasilitasPage() {
   // Form modal fasilitas
   const [showModal, setShowModal] = useState(false);
   const [editItem, setEditItem] = useState<FasilitasItem | null>(null);
-  const [formData, setFormData] = useState({ judul: "", deskripsi: "", icon: "BookOpen", urutan: 0, isActive: true });
+  const [formData, setFormData] = useState({
+    judul: "",
+    deskripsi: "",
+    icon: "BookOpen",
+    fotoUrl: "",
+    urutan: 0,
+    isActive: true,
+  });
+  const [uploadingItemFoto, setUploadingItemFoto] = useState(false);
   const [savingItem, setSavingItem] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
@@ -151,14 +160,40 @@ export default function FasilitasPage() {
   // ========================
   const openAddModal = () => {
     setEditItem(null);
-    setFormData({ judul: "", deskripsi: "", icon: "BookOpen", urutan: fasilitas.length, isActive: true });
+    setFormData({ judul: "", deskripsi: "", icon: "BookOpen", fotoUrl: "", urutan: fasilitas.length, isActive: true });
     setShowModal(true);
   };
 
   const openEditModal = (item: FasilitasItem) => {
     setEditItem(item);
-    setFormData({ judul: item.judul, deskripsi: item.deskripsi, icon: item.icon, urutan: item.urutan, isActive: item.isActive });
+    setFormData({
+      judul: item.judul,
+      deskripsi: item.deskripsi,
+      icon: item.icon,
+      fotoUrl: item.fotoUrl || "",
+      urutan: item.urutan,
+      isActive: item.isActive,
+    });
     setShowModal(true);
+  };
+
+  const handleUploadItemFoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const fd = new FormData();
+    fd.append("file", file);
+    setUploadingItemFoto(true);
+    try {
+      const res = await fetch("/api/upload", { method: "POST", body: fd });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Gagal upload foto");
+      setFormData((prev) => ({ ...prev, fotoUrl: data.url }));
+      showToast("success", "Foto fasilitas berhasil diunggah");
+    } catch {
+      showToast("error", "Gagal upload foto fasilitas");
+    } finally {
+      setUploadingItemFoto(false);
+    }
   };
 
   const handleSaveItem = async () => {
@@ -216,7 +251,15 @@ export default function FasilitasPage() {
       await fetch("/api/fasilitas", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: item.id, judul: item.judul, deskripsi: item.deskripsi, icon: item.icon, urutan: item.urutan, isActive: !item.isActive }),
+        body: JSON.stringify({
+          id: item.id,
+          judul: item.judul,
+          deskripsi: item.deskripsi,
+          icon: item.icon,
+          fotoUrl: item.fotoUrl,
+          urutan: item.urutan,
+          isActive: !item.isActive,
+        }),
       });
       loadFasilitas();
     } catch {
@@ -235,12 +278,28 @@ export default function FasilitasPage() {
         fetch("/api/fasilitas", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id: item.id, judul: item.judul, deskripsi: item.deskripsi, icon: item.icon, urutan: other.urutan, isActive: item.isActive }),
+          body: JSON.stringify({
+            id: item.id,
+            judul: item.judul,
+            deskripsi: item.deskripsi,
+            icon: item.icon,
+            fotoUrl: item.fotoUrl,
+            urutan: other.urutan,
+            isActive: item.isActive,
+          }),
         }),
         fetch("/api/fasilitas", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id: other.id, judul: other.judul, deskripsi: other.deskripsi, icon: other.icon, urutan: item.urutan, isActive: other.isActive }),
+          body: JSON.stringify({
+            id: other.id,
+            judul: other.judul,
+            deskripsi: other.deskripsi,
+            icon: other.icon,
+            fotoUrl: other.fotoUrl,
+            urutan: item.urutan,
+            isActive: other.isActive,
+          }),
         }),
       ]);
       loadFasilitas();
@@ -456,11 +515,27 @@ export default function FasilitasPage() {
                       }`}
                     >
                       <GripVertical className="w-4 h-4 text-gray-300 shrink-0" />
-                      <div className="p-2 bg-green-100 rounded-lg shrink-0">
-                        <IconComp className="w-4 h-4 text-green-700" />
-                      </div>
+                      {item.fotoUrl ? (
+                        <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 border border-gray-200 shadow-sm relative bg-gray-100">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={item.fotoUrl}
+                            alt={item.judul}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      ) : (
+                        <div className="p-3 bg-green-100 rounded-xl shrink-0">
+                          <IconComp className="w-5 h-5 text-green-700" />
+                        </div>
+                      )}
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-gray-800 truncate">{item.judul}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-semibold text-gray-800 truncate">{item.judul}</p>
+                          {item.fotoUrl && (
+                            <span className="text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-1.5 py-0.5 rounded font-medium">Ada Foto</span>
+                          )}
+                        </div>
                         <p className="text-xs text-gray-500 truncate">{item.deskripsi}</p>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
@@ -638,9 +713,9 @@ export default function FasilitasPage() {
       {/* ==================== MODAL TAMBAH/EDIT FASILITAS ==================== */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] flex flex-col">
             {/* Header Modal */}
-            <div className="flex items-center justify-between p-5 border-b border-gray-100">
+            <div className="flex items-center justify-between p-5 border-b border-gray-100 shrink-0">
               <h3 className="font-semibold text-gray-800">
                 {editItem ? "Edit Fasilitas" : "Tambah Fasilitas"}
               </h3>
@@ -650,7 +725,7 @@ export default function FasilitasPage() {
             </div>
 
             {/* Body Modal */}
-            <div className="p-5 space-y-4">
+            <div className="p-5 space-y-4 overflow-y-auto flex-1">
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Judul Fasilitas *</label>
                 <input
@@ -673,9 +748,81 @@ export default function FasilitasPage() {
                 />
               </div>
 
+              {/* Upload Foto Fasilitas */}
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-2">Pilih Ikon</label>
-                <div className="grid grid-cols-5 gap-2 max-h-36 overflow-y-auto">
+                <label className="block text-xs font-medium text-gray-600 mb-1">Foto Fasilitas (Opsional)</label>
+                {formData.fotoUrl ? (
+                  <div className="relative rounded-xl border border-gray-200 overflow-hidden bg-gray-50 mb-2">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={formData.fotoUrl}
+                      alt="Preview fasilitas"
+                      className="w-full h-36 object-cover"
+                    />
+                    <div className="absolute top-2 right-2 flex gap-1">
+                      <label
+                        htmlFor="ganti-foto-item"
+                        className="px-2.5 py-1 bg-black/60 hover:bg-black/80 text-white rounded-lg cursor-pointer transition text-xs flex items-center gap-1 backdrop-blur-sm shadow"
+                        title="Ganti Foto"
+                      >
+                        <Upload className="w-3.5 h-3.5" />
+                        <span>Ganti</span>
+                        <input
+                          id="ganti-foto-item"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleUploadItemFoto}
+                          className="hidden"
+                        />
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setFormData((p) => ({ ...p, fotoUrl: "" }))}
+                        className="px-2.5 py-1 bg-red-600/80 hover:bg-red-700 text-white rounded-lg transition text-xs flex items-center gap-1 backdrop-blur-sm shadow"
+                        title="Hapus Foto"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                        <span>Hapus</span>
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <label
+                    className={`flex flex-col items-center justify-center border-2 border-dashed border-gray-300 hover:border-green-500 rounded-xl p-4 cursor-pointer transition bg-gray-50/50 hover:bg-green-50/20 ${
+                      uploadingItemFoto ? "opacity-50 pointer-events-none" : ""
+                    }`}
+                  >
+                    {uploadingItemFoto ? (
+                      <div className="flex items-center gap-2 text-xs text-green-600 py-2">
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                        <span>Mengunggah foto...</span>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center gap-1 py-1 text-center">
+                        <div className="p-2 bg-green-100 text-green-700 rounded-lg">
+                          <Upload className="w-4 h-4" />
+                        </div>
+                        <span className="text-xs font-medium text-gray-700">Unggah Foto Fasilitas</span>
+                        <span className="text-[10px] text-gray-400">Format JPG, PNG, atau WebP (Maks. 5MB)</span>
+                      </div>
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleUploadItemFoto}
+                      disabled={uploadingItemFoto}
+                      className="hidden"
+                    />
+                  </label>
+                )}
+                <p className="text-[11px] text-gray-400 mt-1">
+                  Jika foto diunggah, foto akan tampil di halaman depan website. Jika tidak ada foto, ikon di bawah yang akan tampil.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-2">Pilih Ikon (Ikon bawaan)</label>
+                <div className="grid grid-cols-5 gap-2 max-h-32 overflow-y-auto border border-gray-100 p-2 rounded-xl">
                   {ICON_LIST.map(({ name, icon: IconComp, label }) => (
                     <button
                       key={name}
@@ -694,7 +841,7 @@ export default function FasilitasPage() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between pt-1">
                 <label className="text-xs font-medium text-gray-600">Status Tampil</label>
                 <button
                   onClick={() => setFormData((p) => ({ ...p, isActive: !p.isActive }))}

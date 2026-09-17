@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { judul, deskripsi, icon, urutan, isActive } = body;
+    const { judul, deskripsi, icon, fotoUrl, urutan, isActive } = body;
 
     if (!judul || !deskripsi) {
       return NextResponse.json({ error: "Judul dan deskripsi wajib diisi" }, { status: 400 });
@@ -56,6 +56,7 @@ export async function POST(req: NextRequest) {
         judul,
         deskripsi,
         icon: icon || "BookOpen",
+        fotoUrl: fotoUrl || null,
         urutan: urutan ?? 0,
         isActive: isActive !== undefined ? isActive : true,
       },
@@ -89,14 +90,21 @@ export async function PUT(req: NextRequest) {
     }
 
     // Update fasilitas item
-    const { id, judul, deskripsi, icon, urutan, isActive } = body;
+    const { id, judul, deskripsi, icon, fotoUrl, urutan, isActive } = body;
     if (!id) {
       return NextResponse.json({ error: "ID diperlukan" }, { status: 400 });
     }
 
     const fasilitas = await prisma.fasilitas.update({
       where: { id },
-      data: { judul, deskripsi, icon, urutan, isActive },
+      data: { 
+        judul, 
+        deskripsi, 
+        icon, 
+        fotoUrl: fotoUrl !== undefined ? fotoUrl : undefined,
+        urutan, 
+        isActive 
+      },
     });
 
     return NextResponse.json({ fasilitas });
