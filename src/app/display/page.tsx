@@ -539,9 +539,7 @@ export default function MosqueTvDisplayPage() {
             </header>
 
             {/* 2. SLIDE AREA (UTAMA) */}
-            <div className={`flex-1 bg-white/20 backdrop-blur-md rounded-2xl border border-white/80 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-col min-h-0 overflow-hidden relative ${
-              currentSlide.type === "CUSTOM_PHOTO" ? "p-0 bg-black/90" : "p-4 sm:p-5"
-            }`}>
+            <div className="flex-1 bg-white/20 backdrop-blur-md rounded-2xl border border-white/80 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-col min-h-0 overflow-hidden relative p-4 sm:p-5">
               
               {/* Header Slide (Hanya tampil untuk slide standar, tidak untuk slide foto penuh) */}
               {currentSlide.type !== "CUSTOM_PHOTO" && (
@@ -920,12 +918,12 @@ export default function MosqueTvDisplayPage() {
 
                 {/* ---------------- SLIDE CUSTOM (FOTO / POSTER - TAMPIL PENUH TANPA KETERANGAN) ---------------- */}
                 {currentSlide.type === "CUSTOM_PHOTO" && currentSlide.fotoUrl && (
-                  <div className="h-full w-full overflow-hidden relative flex items-center justify-center bg-black">
+                  <div className="h-full w-full overflow-hidden rounded-xl relative flex items-center justify-center bg-black/90 shadow-inner">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={currentSlide.fotoUrl}
                       alt="Slide Foto TV Display"
-                      className="w-full h-full object-contain"
+                      className="w-full h-full object-contain rounded-lg"
                     />
                   </div>
                 )}
