@@ -1,37 +1,48 @@
-#!/usr/bin/env bash
-# ==============================================================================
-# SCRIPT UPDATE APLIKASI SIMAS MASJID DI VPS (PM2)
-# ==============================================================================
-
+cat << 'EOF' > ~/update.sh
+#!/bin/bash
 set -e
 
-echo "=== Memulai Update SIMAS Masjid ==="
+echo "=========================================="
+echo "   MEMULAI UPDATE WEBSITE MASJID (SIMAS)  "
+echo "=========================================="
 
-# 1. Tarik pembaruan dari Git jika menggunakan repository
-if [ -d .git ]; then
-  echo "Menarik kode terbaru dari Git..."
-  git pull origin main || git pull
+APP_DIR="/home/baitulmaghfirah"
+BACKUP_DIR="$APP_DIR/db_backups"
+
+cd "$APP_DIR"
+
+mkdir -p "$BACKUP_DIR"
+TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+
+if [ -f "prisma/dev.db" ]; then
+    echo ">> [1/6] Mengamankan database server (Backup ke $BACKUP_DIR/dev_$TIMESTAMP.db)..."
+    cp prisma/dev.db "$BACKUP_DIR/dev_$TIMESTAMP.db"
+    cp prisma/dev.db "$BACKUP_DIR/dev_latest.db"
 fi
 
-# 2. Pastikan permission folder tetap aman
-mkdir -p prisma public/uploads backups
-chmod -R 775 prisma public/uploads backups 2>/dev/null || true
-chmod +x *.sh 2>/dev/null || true
+echo ">> [2/6] Menyimpan perubahan sementara di server (git stash)..."
+git stash
 
-# 3. Update paket & skema database Prisma
-echo "Memeriksa dependensi..."
-npm install --production=false
+echo ">> [3/6] Menarik update dari GitHub (git pull origin main)..."
+git pull origin main
 
-echo "Memperbarui skema Prisma..."
+if [ -f "$BACKUP_DIR/dev_latest.db" ]; then
+    echo ">> [4/6] Mengembalikan database server asli..."
+    cp "$BACKUP_DIR/dev_latest.db" prisma/dev.db
+fi
+
+echo ">> [5/6] Memperbarui struktur database (prisma db push)..."
 npx prisma generate
-npx prisma db push --accept-data-loss
+npx prisma db push --skip-generate
 
-# 4. Build ulang Next.js dengan alokasi memory yang aman
-echo "Melakukan compile Next.js..."
-NODE_OPTIONS="--max-old-space-size=1536" npm run build
+chmod o+x /home/baitulmaghfirah
+chmod -R 755 /home/baitulmaghfirah/public || true
 
-# 5. Reload PM2 tanpa downtime
-echo "Me-reload aplikasi di PM2..."
-pm2 reload simas-masjid || pm2 restart simas-masjid
+echo ">> [6/6] Melakukan build Next.js dan restart PM2..."
+npm run build
+sudo pm2 restart simas-masjid --update-env
 
-echo "=== Update Selesai! Aplikasi berjalan dengan versi terbaru. ==="
+echo "=========================================="
+echo "   UPDATE SELESAI & APLIKASI BERJALAN!    "
+echo "=========================================="
+EOF
