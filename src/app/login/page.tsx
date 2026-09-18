@@ -971,16 +971,14 @@ function LoginContent() {
             {portalData.displaySlides.map((slide: { id: number; fotoUrl: string }) => (
               <div
                 key={slide.id}
-                className="w-full rounded-3xl overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.04)] border border-white/80 bg-white/60 backdrop-blur-md p-3 sm:p-4 lg:p-5 flex items-center justify-center"
+                className="w-full rounded-3xl overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.06)] border border-white/80 bg-slate-950 flex items-center justify-center"
               >
-                <div className="w-full rounded-2xl overflow-hidden bg-slate-950 flex items-center justify-center p-2 sm:p-4 shadow-inner">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={slide.fotoUrl}
-                    alt="Slide Informasi Masjid"
-                    className="w-full h-auto max-h-[85vh] object-contain rounded-xl block shadow-md"
-                  />
-                </div>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={slide.fotoUrl}
+                  alt="Slide Informasi Masjid"
+                  className="w-full h-auto max-h-[85vh] object-contain block"
+                />
               </div>
             ))}
           </div>
