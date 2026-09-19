@@ -252,17 +252,34 @@ export default function ModalCetakLaporanKas({
             <div className="hidden sm:flex items-center gap-1 bg-slate-800 px-2 py-1 rounded-xl border border-slate-700">
               <button
                 type="button"
-                onClick={() => setZoom((z) => Math.max(0.4, z - 0.1))}
-                className="p-1 hover:text-emerald-400"
-                title="Zoom Out"
+                onClick={() => setZoom((z) => Math.max(0.3, Number((z - 0.1).toFixed(2))))}
+                className="p-1 hover:text-emerald-400 text-slate-300 transition"
+                title="Zoom Out (hingga 30%)"
               >
                 <ZoomOut className="w-3.5 h-3.5" />
               </button>
-              <span className="text-[11px] font-mono px-1">{Math.round(zoom * 100)}%</span>
+              <select
+                value={Math.round(zoom * 100)}
+                onChange={(e) => setZoom(Number(e.target.value) / 100)}
+                className="text-[11px] font-mono text-slate-200 bg-slate-900/90 px-1 py-0.5 rounded border border-slate-700 hover:border-slate-500 focus:outline-none cursor-pointer"
+                title="Pilih Skala Zoom"
+              >
+                <option value={30}>30%</option>
+                <option value={40}>40%</option>
+                <option value={50}>50%</option>
+                <option value={60}>60%</option>
+                <option value={70}>70%</option>
+                <option value={85}>85% (Normal)</option>
+                <option value={100}>100%</option>
+                <option value={120}>120%</option>
+                {![30, 40, 50, 60, 70, 85, 100, 120].includes(Math.round(zoom * 100)) && (
+                  <option value={Math.round(zoom * 100)}>{Math.round(zoom * 100)}%</option>
+                )}
+              </select>
               <button
                 type="button"
-                onClick={() => setZoom((z) => Math.min(1.2, z + 0.1))}
-                className="p-1 hover:text-emerald-400"
+                onClick={() => setZoom((z) => Math.min(1.2, Number((z + 0.1).toFixed(2))))}
+                className="p-1 hover:text-emerald-400 text-slate-300 transition"
                 title="Zoom In"
               >
                 <ZoomIn className="w-3.5 h-3.5" />

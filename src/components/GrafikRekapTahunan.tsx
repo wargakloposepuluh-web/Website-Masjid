@@ -159,10 +159,10 @@ export default function GrafikRekapTahunan({
           {/* Mode Pilihan Kas Tabs */}
           <div className="flex items-center gap-1 bg-slate-100/90 p-1 rounded-2xl border border-slate-200 text-xs font-semibold">
             {[
-              { id: "SEMUA", label: "Semua Kas" },
-              { id: "JARIYAH", label: "Kas Jariyah" },
-              { id: "INFAQ", label: "Kas Infaq" },
-              { id: "KOMPARASI", label: "Bandingkan Kas" },
+              { id: "SEMUA", label: "Semua" },
+              { id: "JARIYAH", label: "Jariyah" },
+              { id: "INFAQ", label: "Infaq" },
+              { id: "KOMPARASI", label: "Bandingkan" },
             ].map((tab) => (
               <button
                 key={tab.id}

@@ -846,6 +846,8 @@ export default function FasilitasPage() {
                         alt={item.judul || "Slide foto"}
                         className="w-full h-full object-contain"
                       />
+                      {/* Border tebal overlay */}
+                      <div className="absolute inset-0 border-[4px] border-neutral-950 pointer-events-none z-10" />
                       <div className="absolute top-2 left-2">
                         <span className="px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-sm text-white text-[10px] font-mono font-semibold">
                           Slide #{idx + 1}
@@ -1271,13 +1273,14 @@ export default function FasilitasPage() {
                   Upload Foto / Poster Slide *
                 </label>
                 {slideFormData.fotoUrl ? (
-                  <div className="relative rounded-2xl border border-gray-200 overflow-hidden bg-slate-900 mb-2 aspect-video flex items-center justify-center">
+                  <div className="relative rounded-2xl overflow-hidden bg-slate-900 mb-2 aspect-video flex items-center justify-center">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={slideFormData.fotoUrl}
                       alt="Preview slide"
                       className="w-full h-full object-contain"
                     />
+                    <div className="absolute inset-0 border-[6px] border-neutral-950 rounded-2xl pointer-events-none z-10" />
                     <div className="absolute top-2 right-2 flex gap-1.5">
                       <label
                         htmlFor="ganti-foto-slide"

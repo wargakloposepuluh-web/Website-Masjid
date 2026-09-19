@@ -26,6 +26,7 @@ import {
   QrCode,
   Archive,
   LayoutGrid,
+  BarChart3,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 
@@ -126,6 +127,12 @@ export default function Sidebar() {
       name: "Buku Kas Masjid",
       href: "/keuangan",
       icon: Wallet,
+      roles: ["SUPER_ADMIN", "ADMIN_KEUANGAN"],
+    },
+    {
+      name: "Grafik",
+      href: "/keuangan/grafik",
+      icon: BarChart3,
       roles: ["SUPER_ADMIN", "ADMIN_KEUANGAN"],
     },
     {

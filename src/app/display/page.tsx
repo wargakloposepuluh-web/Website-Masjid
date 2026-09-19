@@ -925,6 +925,8 @@ export default function MosqueTvDisplayPage() {
                       alt="Slide Foto TV Display"
                       className="w-full h-full object-contain rounded-lg"
                     />
+                    {/* Border tebal overlay di depan gambar */}
+                    <div className="absolute inset-0 border-[6px] sm:border-[8px] md:border-[10px] border-neutral-950 rounded-xl pointer-events-none z-10 shadow-[inset_0_0_10px_rgba(0,0,0,0.6)]" />
                   </div>
                 )}
               </div>

@@ -4,7 +4,6 @@ import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
-  ArrowLeft,
   Save,
   Upload,
   ArrowDownLeft,
@@ -33,13 +32,6 @@ function CatatKeuanganContent() {
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
-  // Stats for mini balance cards
-  const [stats, setStats] = useState<{
-    saldoJariyah: number;
-    saldoInfaq: number;
-    totalSaldo: number;
-  } | null>(null);
-
   // Form states
   const [jenis, setJenis] = useState<"MASUK" | "KELUAR">("MASUK");
   const [kategoriKas, setKategoriKas] = useState<"JARIYAH" | "INFAQ">("JARIYAH");
@@ -48,16 +40,6 @@ function CatatKeuanganContent() {
   const [nominalDisplay, setNominalDisplay] = useState("");
   const [keterangan, setKeterangan] = useState("");
   const [buktiFotoUrl, setBuktiFotoUrl] = useState("");
-
-  // Fetch stats on mount
-  useEffect(() => {
-    fetch("/api/keuangan/stats")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data) setStats(data);
-      })
-      .catch(() => {});
-  }, []);
 
   // Fetch initial data if editing
   useEffect(() => {
@@ -202,37 +184,6 @@ function CatatKeuanganContent() {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto space-y-6 text-[#111317]">
-      {/* 1. Header & Tombol Navigasi Kembali (Tanpa Kotak) */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-2">
-        <div className="flex items-center gap-4">
-          <Link
-            href="/keuangan"
-            className="p-2.5 rounded-2xl bg-white/80 hover:bg-white text-slate-700 hover:text-emerald-700 border border-slate-200 shadow-sm transition active:scale-95 flex-shrink-0"
-            title="Kembali ke Buku Kas"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2.5">
-              <span>{editId ? "Ubah Transaksi Kas" : "Input Pencatatan Kas Masjid"}</span>
-            </h1>
-          </div>
-        </div>
-
-        {/* Mini Balance Indicators */}
-        {stats && (
-          <div className="flex items-center gap-2.5 flex-wrap">
-            <div className="bg-teal-50/80 border border-teal-200/80 px-3 py-1.5 rounded-2xl text-right">
-              <span className="text-[10px] text-teal-700 font-bold uppercase block">Kas Jariyah</span>
-              <span className="text-xs font-extrabold text-teal-900">{formatRupiah(stats.saldoJariyah)}</span>
-            </div>
-            <div className="bg-amber-50/80 border border-amber-200/80 px-3 py-1.5 rounded-2xl text-right">
-              <span className="text-[10px] text-amber-700 font-bold uppercase block">Kas Infaq</span>
-              <span className="text-xs font-extrabold text-amber-900">{formatRupiah(stats.saldoInfaq)}</span>
-            </div>
-          </div>
-        )}
-      </div>
 
       {/* 2. Alert Feedback (Error / Success) */}
       {errorMsg && (

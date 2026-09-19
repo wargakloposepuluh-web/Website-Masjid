@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
-  Wallet,
   Landmark,
   HeartHandshake,
   ArrowDownLeft,
@@ -22,11 +21,13 @@ import {
   Coins,
   FileText,
   QrCode,
+  BarChart3,
+  BookOpen,
 } from "lucide-react";
 import { formatIndoDate } from "@/lib/utils";
 import ModalTransaksiKeuangan from "@/components/ModalTransaksiKeuangan";
 import ModalBuktiFoto from "@/components/ModalBuktiFoto";
-import GrafikRekapTahunan, { RekapTahunanData } from "@/components/GrafikRekapTahunan";
+import type { RekapTahunanData } from "@/components/GrafikRekapTahunan";
 import ModalCetakLaporanKas from "@/components/ModalCetakLaporanKas";
 
 interface TransaksiItem {
@@ -187,99 +188,83 @@ export default function KeuanganPage() {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
-      {/* 1. Header Banner */}
-      <div className="no-print flex flex-wrap items-center justify-between gap-4 bg-white/50 backdrop-blur-md p-6 rounded-3xl border border-white/70 shadow-[0_4px_20px_rgba(0,0,0,0.03)]">
-        <div>
-          <div className="flex items-center gap-2">
-            <Wallet className="w-5 h-5 text-emerald-600" />
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
-              Pencatatan Keuangan Masjid
-            </h1>
-          </div>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Pengelolaan Terpisah Kas Jariyah dan Kas Infaq/Shodaqoh
-          </p>
-        </div>
 
-        <div className="flex items-center gap-2.5">
-          <button
-            type="button"
-            onClick={handlePrint}
-            className="inline-flex items-center gap-2 bg-white/80 hover:bg-white text-slate-700 text-xs sm:text-sm font-semibold px-4 py-2.5 rounded-2xl border border-slate-200 shadow-sm transition active:scale-95"
-            title="Cetak Laporan Keuangan"
+      {/* Top Navigation Menu: Buku Kas vs Grafik */}
+      <div className="no-print flex flex-wrap items-center justify-between gap-3 pb-2 border-b border-white/60">
+        <div className="flex items-center gap-1 bg-white/40 p-1 rounded-2xl border border-white/70 backdrop-blur-md">
+          <span className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-[#16171b] text-white shadow-xs">
+            <BookOpen className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Buku Kas</span>
+          </span>
+          <Link
+            href="/keuangan/grafik"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-white/60 transition"
           >
-            <Printer className="w-4 h-4 text-slate-600" />
-            <span>Cetak Laporan Kas</span>
-          </button>
+            <BarChart3 className="w-3.5 h-3.5" />
+            <span>Grafik</span>
+          </Link>
         </div>
-      </div>
 
-      {/* 2. Rekapitulasi Tahunan (Grafik Pemasukan vs Pengeluaran Kedua Kas) */}
-      <div className="no-print">
-        <GrafikRekapTahunan
-          data={stats?.rekapTahunan}
-          availableYears={
-            stats?.availableYears && stats.availableYears.length > 0
-              ? stats.availableYears
-              : Array.from({ length: 6 }, (_, i) => new Date().getFullYear() + i)
-          }
-          selectedYear={selectedYear}
-          onYearChange={(yr) => setSelectedYear(yr)}
-          loading={loading}
-        />
+        <Link
+          href="/keuangan/catat"
+          className="flex items-center gap-1.5 px-4 py-2 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md shadow-emerald-700/20 transition"
+        >
+          <PlusCircle className="w-3.5 h-3.5" />
+          <span>Catat Kas Baru</span>
+        </Link>
       </div>
 
       {/* 3. Ringkasan Saldo Kas (3 Kartu Statistik) */}
       <div className="no-print grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* Card 1: Kas Jariyah */}
-        <div className="bg-white/50 backdrop-blur-md rounded-3xl p-5 border border-white/70 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-col justify-between space-y-3 hover:bg-white/70 transition">
+        <div className="bg-white/95 backdrop-blur-xl rounded-3xl p-5 border border-slate-200/90 shadow-md shadow-slate-900/5 flex flex-col justify-between space-y-3 hover:shadow-lg transition">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-teal-700 font-bold text-xs uppercase tracking-wider">
               <Landmark className="w-4 h-4" />
               <span>Kas Jariyah</span>
             </div>
-            <span className="text-[10px] px-2 py-0.5 rounded-lg bg-teal-50 text-teal-700 font-semibold border border-teal-200/60">
+            <span className="text-[10px] px-2.5 py-0.5 rounded-lg bg-teal-50 text-teal-700 font-bold border border-teal-200">
               Pembangunan
             </span>
           </div>
           <div>
-            <span className="text-[11px] font-medium text-slate-400">Saldo Kas Jariyah:</span>
+            <span className="text-[11px] font-semibold text-slate-500">Saldo Kas Jariyah:</span>
             <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 mt-0.5">
               {stats ? formatRp(stats.saldoJariyah) : "..."}
             </h3>
           </div>
-          <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
-            <span className="text-emerald-600 font-semibold">
+          <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-600 font-medium">
+            <span className="text-emerald-700 font-bold">
               + {stats ? formatRp(stats.totalMasukJariyah) : "..."}
             </span>
-            <span className="text-red-500 font-semibold">
+            <span className="text-rose-600 font-bold">
               - {stats ? formatRp(stats.totalKeluarJariyah) : "..."}
             </span>
           </div>
         </div>
 
         {/* Card 2: Kas Infaq / Shodaqoh */}
-        <div className="bg-white/50 backdrop-blur-md rounded-3xl p-5 border border-white/70 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-col justify-between space-y-3 hover:bg-white/70 transition">
+        <div className="bg-white/95 backdrop-blur-xl rounded-3xl p-5 border border-slate-200/90 shadow-md shadow-slate-900/5 flex flex-col justify-between space-y-3 hover:shadow-lg transition">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-amber-700 font-bold text-xs uppercase tracking-wider">
+            <div className="flex items-center gap-2 text-amber-800 font-bold text-xs uppercase tracking-wider">
               <HeartHandshake className="w-4 h-4" />
               <span>Kas Infaq / Shodaqoh</span>
             </div>
-            <span className="text-[10px] px-2 py-0.5 rounded-lg bg-amber-50 text-amber-700 font-semibold border border-amber-200/60">
+            <span className="text-[10px] px-2.5 py-0.5 rounded-lg bg-amber-50 text-amber-800 font-bold border border-amber-200">
               Operasional
             </span>
           </div>
           <div>
-            <span className="text-[11px] font-medium text-slate-400">Saldo Kas Infaq:</span>
+            <span className="text-[11px] font-semibold text-slate-500">Saldo Kas Infaq:</span>
             <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 mt-0.5">
               {stats ? formatRp(stats.saldoInfaq) : "..."}
             </h3>
           </div>
-          <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
-            <span className="text-emerald-600 font-semibold">
+          <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-600 font-medium">
+            <span className="text-emerald-700 font-bold">
               + {stats ? formatRp(stats.totalMasukInfaq) : "..."}
             </span>
-            <span className="text-red-500 font-semibold">
+            <span className="text-rose-600 font-bold">
               - {stats ? formatRp(stats.totalKeluarInfaq) : "..."}
             </span>
           </div>
@@ -310,7 +295,7 @@ export default function KeuanganPage() {
       </div>
 
       {/* 3. Filter & Toolbar */}
-      <div className="no-print bg-white/50 backdrop-blur-md p-5 rounded-3xl border border-white/70 shadow-[0_4px_20px_rgba(0,0,0,0.03)] space-y-3.5">
+      <div className="no-print bg-white/95 backdrop-blur-xl p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-md shadow-slate-900/5 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           {/* Search Form */}
           <form
@@ -324,7 +309,7 @@ export default function KeuanganPage() {
                 placeholder="Cari uraian transaksi atau keterangan..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm bg-slate-50/70 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition"
+                className="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm bg-white border border-slate-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-xs transition"
               />
             </div>
             <button
@@ -337,7 +322,7 @@ export default function KeuanganPage() {
 
           {/* Filter Kategori Kas */}
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-xs text-slate-400 font-medium mr-1">Kas:</span>
+            <span className="text-xs text-slate-500 font-bold mr-1">Kas:</span>
             {[
               { id: "all", label: "Semua Kas" },
               { id: "JARIYAH", label: "Kas Jariyah" },
@@ -350,7 +335,7 @@ export default function KeuanganPage() {
                 className={`px-3 py-1.5 rounded-2xl text-xs font-semibold transition ${
                   kategoriFilter === k.id
                     ? "bg-emerald-600 text-white shadow-sm font-bold"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    : "bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200/60"
                 }`}
               >
                 {k.label}
@@ -360,7 +345,7 @@ export default function KeuanganPage() {
 
           {/* Filter Jenis: Masuk / Keluar */}
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-xs text-slate-400 font-medium mr-1">Jenis:</span>
+            <span className="text-xs text-slate-500 font-bold mr-1">Jenis:</span>
             {[
               { id: "all", label: "Semua" },
               { id: "MASUK", label: "Pemasukan (+)" },
@@ -373,7 +358,7 @@ export default function KeuanganPage() {
                 className={`px-3 py-1.5 rounded-2xl text-xs font-semibold transition ${
                   jenisFilter === j.id
                     ? "bg-slate-900 text-white shadow-sm font-bold"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    : "bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200/60"
                 }`}
               >
                 {j.label}
@@ -382,48 +367,84 @@ export default function KeuanganPage() {
           </div>
         </div>
 
-        {/* Date Range Picker */}
-        <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-slate-100 text-xs text-slate-600">
-          <span className="font-semibold flex items-center gap-1">
-            <Calendar className="w-3.5 h-3.5 text-slate-400" />
-            <span>Rentang Tanggal:</span>
-          </span>
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500/20"
-          />
-          <span>s/d</span>
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-500/20"
-          />
-          {(startDate || endDate || search || kategoriFilter !== "all" || jenisFilter !== "all") && (
+        {/* Date Range Picker & Tombol Cetak Laporan */}
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-3.5 border-t border-slate-200 text-xs text-slate-600">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <span className="font-bold flex items-center gap-1 text-slate-700">
+              <Calendar className="w-3.5 h-3.5 text-slate-500" />
+              <span>Rentang Tanggal:</span>
+            </span>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="px-3 py-1.5 bg-white border border-slate-300 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500/20 shadow-xs"
+            />
+            <span className="font-semibold text-slate-400">s/d</span>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="px-3 py-1.5 bg-white border border-slate-300 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500/20 shadow-xs"
+            />
+            {(startDate || endDate || search || kategoriFilter !== "all" || jenisFilter !== "all") && (
+              <button
+                type="button"
+                onClick={() => {
+                  setStartDate("");
+                  setEndDate("");
+                  setSearch("");
+                  setKategoriFilter("all");
+                  setJenisFilter("all");
+                }}
+                className="text-[11px] text-red-600 font-bold hover:underline ml-1"
+              >
+                Reset Semua Filter
+              </button>
+            )}
+          </div>
+
+          <div>
             <button
               type="button"
-              onClick={() => {
-                setStartDate("");
-                setEndDate("");
-                setSearch("");
-                setKategoriFilter("all");
-                setJenisFilter("all");
-              }}
-              className="text-[11px] text-red-500 font-semibold hover:underline ml-auto"
+              onClick={handlePrint}
+              className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold px-4 py-2 rounded-2xl shadow-md shadow-emerald-700/20 transition active:scale-95"
+              title="Cetak Laporan Keuangan"
             >
-              Reset Semua Filter
+              <Printer className="w-4 h-4" />
+              <span>Cetak Laporan Kas</span>
             </button>
-          )}
+          </div>
         </div>
       </div>
 
       {/* 4. Tabel Riwayat Transaksi (Ledger) */}
-      <div className="bg-white/50 backdrop-blur-md rounded-3xl border border-white/70 shadow-[0_4px_20px_rgba(0,0,0,0.03)] overflow-hidden">
+      <div className="bg-white/95 backdrop-blur-xl rounded-3xl border border-slate-200/90 shadow-xl shadow-slate-900/5 overflow-hidden">
+        {/* Header Kotak Tabel Rekapitulasi */}
+        <div className="px-6 py-4 bg-slate-50/90 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-emerald-100 border border-emerald-200 text-emerald-800 flex items-center justify-center font-bold shadow-xs">
+              <Receipt className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-extrabold text-sm sm:text-base text-slate-900 tracking-tight">
+                Tabel Rekapitulasi Kas Masjid
+              </h3>
+              <p className="text-[11px] text-slate-500 font-medium">
+                Pencatatan rincian mutasi kas masuk & keluar (Kas Jariyah & Kas Infaq)
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold px-3 py-1.5 rounded-xl bg-white text-slate-700 border border-slate-200 shadow-xs">
+              Total: <strong className="text-emerald-700 font-extrabold">{items.length}</strong> Transaksi
+            </span>
+          </div>
+        </div>
+
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs sm:text-sm">
-            <thead className="bg-slate-50/70 border-b border-slate-100 text-slate-500 font-bold uppercase text-[11px] tracking-wider">
+            <thead className="bg-slate-100 border-b border-slate-200 text-slate-700 font-bold uppercase text-[11px] tracking-wider">
               <tr>
                 <th className="py-4 px-4 w-12 text-center">No</th>
                 <th className="py-4 px-4">Tanggal</th>
@@ -435,17 +456,24 @@ export default function KeuanganPage() {
                 <th className="no-print py-4 px-4 text-center w-24">Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-200 bg-white">
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-slate-400">
-                    Memuat riwayat transaksi kas...
+                  <td colSpan={8} className="py-16 text-center text-slate-500 font-medium">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <div className="w-8 h-8 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+                      <span>Memuat riwayat transaksi kas...</span>
+                    </div>
                   </td>
                 </tr>
               ) : items.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-slate-400">
-                    Tidak ada transaksi kas yang sesuai dengan filter.
+                  <td colSpan={8} className="py-16 text-center text-slate-500">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <Receipt className="w-10 h-10 text-slate-300" />
+                      <p className="font-bold text-slate-700">Tidak ada transaksi kas yang sesuai</p>
+                      <p className="text-xs text-slate-400">Coba ubah kata kunci pencarian atau sesuaikan filter Anda.</p>
+                    </div>
                   </td>
                 </tr>
               ) : (
@@ -454,29 +482,29 @@ export default function KeuanganPage() {
                   const isJariyah = item.kategoriKas === "JARIYAH";
 
                   return (
-                    <tr key={item.id} className="hover:bg-slate-50/50 transition">
-                      <td className="py-3.5 px-4 text-center font-mono text-slate-400">
+                    <tr key={item.id} className="even:bg-slate-50/50 hover:bg-emerald-50/40 transition-colors">
+                      <td className="py-3.5 px-4 text-center font-mono font-semibold text-slate-500">
                         {idx + 1}
                       </td>
-                      <td className="py-3.5 px-4 font-medium text-slate-700 whitespace-nowrap">
+                      <td className="py-3.5 px-4 font-bold text-slate-800 whitespace-nowrap">
                         {formatIndoDate(item.tanggal)}
                       </td>
                       <td className="py-3.5 px-4">
                         <span
-                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-bold ${
+                          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold border shadow-xs ${
                             isMasuk
-                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                              : "bg-red-50 text-red-600 border border-red-200"
+                              ? "bg-emerald-100 text-emerald-800 border-emerald-300"
+                              : "bg-rose-100 text-rose-800 border-rose-300"
                           }`}
                         >
                           {isMasuk ? (
                             <>
-                              <ArrowDownLeft className="w-3.5 h-3.5" />
+                              <ArrowDownLeft className="w-3.5 h-3.5 text-emerald-700" />
                               <span>Masuk</span>
                             </>
                           ) : (
                             <>
-                              <ArrowUpRight className="w-3.5 h-3.5" />
+                              <ArrowUpRight className="w-3.5 h-3.5 text-rose-700" />
                               <span>Keluar</span>
                             </>
                           )}
@@ -484,19 +512,19 @@ export default function KeuanganPage() {
                       </td>
                       <td className="py-3.5 px-4">
                         <span
-                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-bold ${
+                          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold border shadow-xs ${
                             isJariyah
-                              ? "bg-teal-50 text-teal-700 border border-teal-200"
-                              : "bg-amber-50 text-amber-700 border border-amber-200"
+                              ? "bg-teal-100 text-teal-800 border-teal-300"
+                              : "bg-amber-100 text-amber-900 border-amber-300"
                           }`}
                         >
                           {isJariyah ? "Kas Jariyah" : "Kas Infaq"}
                         </span>
                       </td>
                       <td className="py-3.5 px-4">
-                        <div className="font-semibold text-slate-900">{item.keterangan}</div>
+                        <div className="font-bold text-slate-900 leading-snug">{item.keterangan}</div>
                         {item.dicatatOleh && (
-                          <div className="text-[10px] text-slate-400 mt-0.5">
+                          <div className="text-[11px] text-slate-500 font-medium mt-0.5">
                             Oleh: {item.dicatatOleh}
                           </div>
                         )}
@@ -511,31 +539,37 @@ export default function KeuanganPage() {
                                 ket: item.keterangan,
                               })
                             }
-                            className="p-1 rounded-xl hover:bg-slate-100 transition inline-block border border-slate-200"
+                            className="p-1 rounded-xl hover:bg-slate-100 transition inline-block border border-slate-300 shadow-xs hover:scale-105"
                             title="Klik untuk lihat foto nota"
                           >
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                               src={item.buktiFotoUrl}
                               alt="Nota"
-                              className="w-8 h-8 object-cover rounded-lg"
+                              className="w-9 h-9 object-cover rounded-lg"
                             />
                           </button>
                         ) : (
-                          <span className="text-slate-300 text-xs">-</span>
+                          <span className="text-slate-400 font-semibold text-xs">-</span>
                         )}
                       </td>
-                      <td className="py-3.5 px-4 text-right font-mono font-bold whitespace-nowrap">
-                        <span className={isMasuk ? "text-emerald-700" : "text-red-600"}>
+                      <td className="py-3.5 px-4 text-right font-mono font-extrabold whitespace-nowrap">
+                        <span
+                          className={`px-3 py-1 rounded-xl text-xs sm:text-sm inline-block border font-mono font-extrabold ${
+                            isMasuk
+                              ? "text-emerald-800 bg-emerald-50 border-emerald-200"
+                              : "text-rose-800 bg-rose-50 border-rose-200"
+                          }`}
+                        >
                           {isMasuk ? "+ " : "- "}
                           {formatRp(item.nominal)}
                         </span>
                       </td>
                       <td className="no-print py-3.5 px-4 text-center">
-                        <div className="inline-flex items-center gap-1">
+                        <div className="inline-flex items-center gap-1.5">
                           <Link
                             href={`/keuangan/catat?id=${item.id}`}
-                            className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-500 hover:text-emerald-700 transition"
+                            className="p-2 rounded-xl bg-slate-50 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 border border-slate-200 transition shadow-xs"
                             title="Edit Transaksi"
                           >
                             <Edit2 className="w-3.5 h-3.5" />
@@ -543,7 +577,7 @@ export default function KeuanganPage() {
                           <button
                             type="button"
                             onClick={() => handleDelete(item.id, item.keterangan)}
-                            className="p-1.5 rounded-xl hover:bg-red-50 text-slate-400 hover:text-red-600 transition"
+                            className="p-2 rounded-xl bg-slate-50 hover:bg-rose-50 text-slate-500 hover:text-rose-600 border border-slate-200 transition shadow-xs"
                             title="Hapus Transaksi"
                           >
                             <Trash2 className="w-3.5 h-3.5" />

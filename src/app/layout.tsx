@@ -14,19 +14,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang="id" className="scroll-smooth">
-      <body className="antialiased bg-[#f3f4f7] text-[#111317] min-h-screen selection:bg-emerald-600 selection:text-white relative">
-        {/* Background Image Masjid - Full Halaman */}
+      <body className="antialiased bg-[#f8faf7] text-[#111317] min-h-screen selection:bg-emerald-600 selection:text-white relative">
+        {/* Background Image Masjid - Kualitas Penuh 100%, Jernih, Tajam & Alami (Tanpa Overlay / Redup) */}
         <div
-          className="fixed inset-0 pointer-events-none z-0 select-none overflow-hidden print:hidden"
+          className="fixed inset-0 pointer-events-none z-0 select-none bg-cover bg-center bg-no-repeat print:hidden"
+          style={{
+            backgroundImage: "url('/bg-tv-display.jpg')",
+          }}
           aria-hidden="true"
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/bg_masjid.jpg"
-            alt="Background Masjid"
-            className="w-full h-full object-cover object-center opacity-50 md:opacity-65 mix-blend-multiply transition-all duration-300"
-          />
-        </div>
+        />
 
         <AppLayout>{children}</AppLayout>
       </body>

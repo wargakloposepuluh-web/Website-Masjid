@@ -341,18 +341,33 @@ export default function SuratPreview({
             <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
               <button
                 type="button"
-                onClick={() => setZoom((z) => Math.max(0.5, z - 0.1))}
+                onClick={() => setZoom((z) => Math.max(0.3, Number((z - 0.1).toFixed(2))))}
                 className="p-1 hover:bg-white rounded-lg text-slate-700 transition"
-                title="Zoom Out"
+                title="Zoom Out (hingga 30%)"
               >
                 <ZoomOut className="w-4 h-4" />
               </button>
-              <span className="text-xs font-medium text-slate-700 w-12 text-center">
-                {Math.round(zoom * 100)}%
-              </span>
+              <select
+                value={Math.round(zoom * 100)}
+                onChange={(e) => setZoom(Number(e.target.value) / 100)}
+                className="text-xs font-semibold text-slate-700 bg-transparent py-0.5 px-1 rounded hover:bg-white focus:outline-none cursor-pointer"
+                title="Pilih Skala Zoom"
+              >
+                <option value={30}>30%</option>
+                <option value={40}>40%</option>
+                <option value={50}>50%</option>
+                <option value={60}>60%</option>
+                <option value={75}>75% (Normal)</option>
+                <option value={90}>90%</option>
+                <option value={100}>100%</option>
+                <option value={125}>125%</option>
+                {![30, 40, 50, 60, 75, 90, 100, 125].includes(Math.round(zoom * 100)) && (
+                  <option value={Math.round(zoom * 100)}>{Math.round(zoom * 100)}%</option>
+                )}
+              </select>
               <button
                 type="button"
-                onClick={() => setZoom((z) => Math.min(1.3, z + 0.1))}
+                onClick={() => setZoom((z) => Math.min(1.3, Number((z + 0.1).toFixed(2))))}
                 className="p-1 hover:bg-white rounded-lg text-slate-700 transition"
                 title="Zoom In"
               >
@@ -362,7 +377,7 @@ export default function SuratPreview({
                 type="button"
                 onClick={() => setZoom(0.75)}
                 className="p-1 hover:bg-white rounded-lg text-slate-700 transition ml-1"
-                title="Reset Zoom"
+                title="Reset Zoom (75%)"
               >
                 <Maximize2 className="w-3.5 h-3.5" />
               </button>

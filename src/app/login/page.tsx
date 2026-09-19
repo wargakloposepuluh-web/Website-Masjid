@@ -330,12 +330,6 @@ function LoginContent() {
     }
   };
 
-  const handleQuickFill = (u: string, p: string) => {
-    setUsername(u);
-    setPassword(p);
-    setLoginErrorMsg("");
-  };
-
   const formatRupiah = (val: number) => {
     return new Intl.NumberFormat("id-ID", {
       style: "currency",
@@ -519,16 +513,6 @@ function LoginContent() {
               >
                 <span>Fasilitas</span>
               </a>
-              {Boolean(portalData?.displaySlides && portalData.displaySlides.length > 0) && (
-                <a
-                  href="#informasi-visual"
-                  onClick={(e) => scrollToSection(e, "informasi-visual")}
-                  className="hover:text-emerald-700 hover:bg-emerald-50 px-2 sm:px-3 py-1 rounded-xl transition cursor-pointer"
-                >
-                  <span className="sm:hidden">Informasi</span>
-                  <span className="hidden sm:inline">Pengumuman & Poster</span>
-                </a>
-              )}
               <a
                 href="#agenda-ibadah"
                 onClick={(e) => scrollToSection(e, "agenda-ibadah")}
@@ -579,7 +563,7 @@ function LoginContent() {
                   className={`px-3.5 py-2.5 sm:px-4 sm:py-3.5 rounded-xl flex items-center justify-between transition-all duration-300 ${
                     isNext
                       ? "bg-slate-900 text-white font-bold shadow-md shadow-slate-950/20 border border-slate-800"
-                      : "bg-white/60 hover:bg-white/80 text-slate-800 border border-white/70 shadow-2xs"
+                      : "bg-white/30 hover:bg-white/50 text-slate-800 border border-white/80 shadow-2xs backdrop-blur-sm"
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -647,10 +631,10 @@ function LoginContent() {
           {/* Sisi Kiri: 3 Kartu Saldo & Catatan Transaksi (8 Kolom) */}
           <div className="lg:col-span-8 space-y-4">
             {/* 1 Kotak Utuh: Informasi Kas Jariyah, Kas Infaq, dan Total Saldo Kas */}
-            <div className="bg-white/70 backdrop-blur-md rounded-3xl border border-white/80 shadow-[0_4px_20px_rgba(0,0,0,0.03)] overflow-hidden">
+            <div className="bg-white/20 backdrop-blur-md rounded-3xl border border-white/80 shadow-[0_4px_20px_rgba(0,0,0,0.03)] overflow-hidden">
               <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-slate-200/70">
                 {/* 1. Kas Jariyah */}
-                <div className="p-5 sm:p-6 flex flex-col justify-between space-y-3 hover:bg-teal-50/20 transition">
+                <div className="p-5 sm:p-6 flex flex-col justify-between space-y-3 hover:bg-white/10 transition">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-teal-700 font-bold text-xs uppercase tracking-wider">
                       <Landmark className="w-4 h-4" />
@@ -672,7 +656,7 @@ function LoginContent() {
                 </div>
 
                 {/* 2. Kas Infaq */}
-                <div className="p-5 sm:p-6 flex flex-col justify-between space-y-3 hover:bg-amber-50/20 transition">
+                <div className="p-5 sm:p-6 flex flex-col justify-between space-y-3 hover:bg-white/10 transition">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-amber-700 font-bold text-xs uppercase tracking-wider">
                       <HeartHandshake className="w-4 h-4" />
@@ -694,7 +678,7 @@ function LoginContent() {
                 </div>
 
                 {/* 3. Total Saldo Kas (Highlight) */}
-                <div className="p-5 sm:p-6 bg-gradient-to-br from-emerald-50/90 to-teal-50/70 flex flex-col justify-between space-y-3 hover:bg-emerald-50 transition">
+                <div className="p-5 sm:p-6 bg-emerald-50/50 backdrop-blur-sm flex flex-col justify-between space-y-3 hover:bg-emerald-50/70 transition">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-emerald-800 font-extrabold text-xs uppercase tracking-wider">
                       <Coins className="w-4 h-4 text-emerald-700" />
@@ -719,12 +703,12 @@ function LoginContent() {
 
             {/* Catatan Transaksi Kas Terakhir (Tabel Kolom seperti Modul Keuangan) */}
             {Boolean(portalData?.keuangan?.transaksiTerkini && portalData.keuangan.transaksiTerkini.length > 0) && (
-              <div className="bg-white/60 backdrop-blur-md rounded-3xl p-5 border border-white/70 shadow-[0_4px_20px_rgba(0,0,0,0.03)] space-y-3.5">
+              <div className="bg-white/20 backdrop-blur-md rounded-3xl p-5 sm:p-6 border border-white/80 shadow-[0_4px_20px_rgba(0,0,0,0.03)] space-y-3.5">
                 <div className="flex items-center justify-between text-xs text-slate-900 font-semibold">
                   <h4 className="font-bold text-slate-900 text-sm sm:text-base">Catatan Transaksi Terakhir</h4>
                 </div>
 
-                <div className="overflow-x-auto rounded-2xl border border-white/70 bg-white/60 shadow-2xs">
+                <div className="overflow-x-auto rounded-2xl border border-white/80 bg-white/30 backdrop-blur-sm shadow-2xs">
                   <table className="w-full text-left text-xs sm:text-sm">
                     <thead className="bg-slate-100/80 border-b border-slate-300 text-slate-900 font-bold uppercase text-[10px] sm:text-[11px] tracking-wider">
                       <tr>
@@ -911,7 +895,7 @@ function LoginContent() {
               return (
                 <div
                   key={item.id}
-                  className="bg-white/60 backdrop-blur-md rounded-3xl p-5 border border-white/70 shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:bg-white/80 transition flex flex-col justify-between space-y-3"
+                  className="bg-white/20 backdrop-blur-md rounded-3xl p-5 sm:p-6 border border-white/80 shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:bg-white/30 transition flex flex-col justify-between space-y-3"
                 >
                   {item.fotoUrl ? (
                     <div className="w-full h-36 rounded-2xl overflow-hidden shadow-sm relative bg-slate-100">
@@ -941,7 +925,7 @@ function LoginContent() {
           </div>
 
           {/* Foto Masjid (5 Kolom) */}
-          <div className="lg:col-span-5 bg-white/60 backdrop-blur-md rounded-3xl p-4 border border-white/70 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-col justify-between">
+          <div className="lg:col-span-5 bg-white/20 backdrop-blur-md rounded-3xl p-4 sm:p-5 border border-white/80 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-col justify-between">
             <div className="relative w-full h-64 sm:h-72 lg:h-full rounded-2xl overflow-hidden shadow-sm min-h-[260px]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -971,15 +955,18 @@ function LoginContent() {
             {portalData.displaySlides.map((slide: { id: number; fotoUrl: string }) => (
               <div
                 key={slide.id}
-                className="w-full rounded-3xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-white/80 bg-white/60 backdrop-blur-md p-3 sm:p-5 flex items-center justify-center"
+                className="w-full rounded-3xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-white/80 bg-white/20 backdrop-blur-md p-3 sm:p-5 flex items-center justify-center"
               >
-                <div className="w-full overflow-hidden rounded-2xl bg-black/90 flex items-center justify-center shadow-inner">
+                <div className="relative w-full overflow-hidden rounded-2xl bg-black/90 flex items-center justify-center shadow-inner">
+                  {/* Gambar tetap di posisi semula dan di layer belakang (ukuran gambar tetap) */}
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={slide.fotoUrl}
                     alt="Slide Informasi Masjid"
                     className="w-full h-auto max-h-[80vh] object-contain block rounded-xl"
                   />
+                  {/* Border tebal warna gelap di posisi depan (overlay) membingkai gambar */}
+                  <div className="absolute inset-0 border-[6px] sm:border-[8px] lg:border-[10px] border-neutral-950 rounded-2xl pointer-events-none z-10 shadow-[inset_0_0_10px_rgba(0,0,0,0.6)]" />
                 </div>
               </div>
             ))}
@@ -1003,7 +990,7 @@ function LoginContent() {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Petugas Sholat Jum'at (7 Kolom) */}
-          <div className="lg:col-span-7 bg-white/60 backdrop-blur-md rounded-3xl p-6 sm:p-7 border border-white/70 shadow-[0_4px_20px_rgba(0,0,0,0.03)] space-y-5">
+          <div className="lg:col-span-7 bg-white/20 backdrop-blur-md rounded-3xl p-6 sm:p-7 border border-white/80 shadow-[0_4px_20px_rgba(0,0,0,0.03)] space-y-5">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold border border-emerald-200/60">
@@ -1033,7 +1020,7 @@ function LoginContent() {
 
             {portalData?.ibadah?.upcomingJumat ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <div className="p-3.5 rounded-2xl bg-white/60 border border-white/70 shadow-2xs space-y-1">
+                <div className="p-3.5 rounded-2xl bg-white/30 backdrop-blur-sm border border-white/80 shadow-2xs space-y-1">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 block">
                     Khotib Sholat Jum&apos;at
                   </span>
@@ -1047,7 +1034,7 @@ function LoginContent() {
                   )}
                 </div>
 
-                <div className="p-3.5 rounded-2xl bg-white/60 border border-white/70 shadow-2xs space-y-1">
+                <div className="p-3.5 rounded-2xl bg-white/30 backdrop-blur-sm border border-white/80 shadow-2xs space-y-1">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 block">
                     Imam Sholat Jum&apos;at
                   </span>
@@ -1056,7 +1043,7 @@ function LoginContent() {
                   </div>
                 </div>
 
-                <div className="p-3.5 rounded-2xl bg-white/60 border border-white/70 shadow-2xs space-y-1">
+                <div className="p-3.5 rounded-2xl bg-white/30 backdrop-blur-sm border border-white/80 shadow-2xs space-y-1">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-slate-800 block">
                     Bilal / Muadzin
                   </span>
@@ -1065,7 +1052,7 @@ function LoginContent() {
                   </div>
                 </div>
 
-                <div className="p-3.5 rounded-2xl bg-white/60 border border-white/70 shadow-2xs space-y-1">
+                <div className="p-3.5 rounded-2xl bg-white/30 backdrop-blur-sm border border-white/80 shadow-2xs space-y-1">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-slate-800 block">
                     Pembaca Pengumuman
                   </span>
@@ -1082,7 +1069,7 @@ function LoginContent() {
           </div>
 
           {/* Jadwal Kegiatan Rutin (5 Kolom) */}
-          <div className="lg:col-span-5 bg-white/60 backdrop-blur-md rounded-3xl p-6 sm:p-7 border border-white/70 shadow-[0_4px_20px_rgba(0,0,0,0.03)] space-y-4">
+          <div className="lg:col-span-5 bg-white/20 backdrop-blur-md rounded-3xl p-6 sm:p-7 border border-white/80 shadow-[0_4px_20px_rgba(0,0,0,0.03)] space-y-4">
             <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
               <Volume2 className="w-4 h-4 text-emerald-600" />
               <h4 className="font-bold text-sm sm:text-base text-slate-900">
@@ -1097,7 +1084,7 @@ function LoginContent() {
                     Rutin Mingguan
                   </span>
                   {portalData.ibadah.kegiatanMingguan.map((k: any) => (
-                    <div key={k.id} className="p-3 rounded-2xl bg-white/60 border border-white/70 shadow-2xs text-xs">
+                    <div key={k.id} className="p-3 rounded-2xl bg-white/30 backdrop-blur-sm border border-white/80 shadow-2xs text-xs">
                       <div className="font-bold text-slate-900">{k.namaKegiatan}</div>
                       <div className="text-slate-800 font-medium text-xs mt-0.5">
                         Setiap {k.hari}, Pukul {k.waktu} WIB • {k.pengisi || "Takmir"}
@@ -1113,7 +1100,7 @@ function LoginContent() {
                     Rutin Bulanan
                   </span>
                   {portalData.ibadah.kegiatanBulanan.map((k: any) => (
-                    <div key={k.id} className="p-3 rounded-2xl bg-white/60 border border-white/70 shadow-2xs text-xs">
+                    <div key={k.id} className="p-3 rounded-2xl bg-white/30 backdrop-blur-sm border border-white/80 shadow-2xs text-xs">
                       <div className="font-bold text-slate-900">{k.namaKegiatan}</div>
                       <div className="text-slate-800 font-medium text-xs mt-0.5">
                         {k.siklusBulanan || k.hari}, Pukul {k.waktu} WIB
@@ -1139,7 +1126,7 @@ function LoginContent() {
       {/* ========================================================= */}
       <section id="saran-aspirasi" className="scroll-mt-36 sm:scroll-mt-44 bg-white/20 backdrop-blur-md rounded-3xl p-6 sm:p-8 border border-white/80 shadow-[0_4px_20px_rgba(0,0,0,0.03)] space-y-6">
         {/* Header Section Saran & Aspirasi */}
-        <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-5 sm:p-6 border border-slate-200/90 shadow-xs flex flex-col items-center text-center justify-center gap-3">
+        <div className="bg-white/30 backdrop-blur-sm rounded-2xl p-5 sm:p-6 border border-white/80 shadow-xs flex flex-col items-center text-center justify-center gap-3">
           <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center flex-shrink-0 border border-amber-200/80 shadow-sm">
             <MessageSquareHeart className="w-6 h-6" />
           </div>
@@ -1194,7 +1181,7 @@ function LoginContent() {
                     onClick={() => setSaranKategori(item.key)}
                     className={`p-3.5 rounded-2xl text-left border transition ${isSelected
                       ? "bg-emerald-50 border-emerald-600 text-emerald-950 font-bold ring-2 ring-emerald-500/20 shadow-sm"
-                      : "bg-white/60 border-white/70 text-slate-900 hover:bg-white/80 shadow-2xs"
+                      : "bg-white/30 border-white/80 text-slate-900 hover:bg-white/50 shadow-2xs backdrop-blur-sm"
                       }`}
                   >
                     <item.icon className="w-5 h-5 text-emerald-600 mb-1.5" />
@@ -1442,46 +1429,6 @@ function LoginContent() {
               </button>
             </form>
 
-            {/* Quick Fill Akun Demo */}
-            <div className="pt-2 border-t border-slate-100 space-y-2">
-              <p className="text-[10px] font-bold text-slate-800 text-center uppercase tracking-wider">
-                Akses Cepat (Demo):
-              </p>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 text-xs">
-                <button
-                  type="button"
-                  onClick={() => handleQuickFill("admin", "admin123")}
-                  className="p-2 rounded-xl bg-slate-50 hover:bg-emerald-50 text-slate-900 font-semibold transition border border-slate-200 text-center hover:border-emerald-300"
-                >
-                  <span className="block text-slate-900 font-bold">Admin</span>
-                  <span className="text-[10px] text-slate-700 font-semibold">admin</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleQuickFill("sekretaris", "surat123")}
-                  className="p-2 rounded-xl bg-slate-50 hover:bg-emerald-50 text-slate-900 font-semibold transition border border-slate-200 text-center hover:border-emerald-300"
-                >
-                  <span className="block text-slate-900 font-bold">Sekretaris</span>
-                  <span className="text-[10px] text-slate-700 font-semibold">sekretaris</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleQuickFill("bendahara", "keuangan123")}
-                  className="p-2 rounded-xl bg-slate-50 hover:bg-emerald-50 text-slate-900 font-semibold transition border border-slate-200 text-center hover:border-emerald-300"
-                >
-                  <span className="block text-slate-900 font-bold">Bendahara</span>
-                  <span className="text-[10px] text-slate-700 font-semibold">bendahara</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleQuickFill("ibadah", "ibadah123")}
-                  className="p-2 rounded-xl bg-slate-50 hover:bg-emerald-50 text-slate-900 font-semibold transition border border-slate-200 text-center hover:border-emerald-300"
-                >
-                  <span className="block text-slate-900 font-bold">Ibadah</span>
-                  <span className="text-[10px] text-slate-700 font-semibold">ibadah</span>
-                </button>
-              </div>
-            </div>
           </div>
         </div>
       )}
