@@ -222,7 +222,17 @@ function LoginContent() {
     fetchPortalData();
     checkCurrentUser();
 
-    return () => clearInterval(timer);
+    // Kunci browser history agar tombol Back browser/HP tidak kembali ke halaman modul berotentikasi
+    window.history.pushState(null, "", window.location.href);
+    const handlePopState = () => {
+      window.history.pushState(null, "", window.location.href);
+    };
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener("popstate", handlePopState);
+    };
   }, []);
 
   const fetchPortalData = async () => {
@@ -239,13 +249,22 @@ function LoginContent() {
 
   const checkCurrentUser = async () => {
     try {
-      const res = await fetch("/api/auth/me");
+      const res = await fetch("/api/auth/me", {
+        cache: "no-store",
+        headers: { "Cache-Control": "no-cache, no-store, must-revalidate" },
+      });
       if (res.ok) {
         const json = await res.json();
-        setLoggedInUser(json.user);
+        if (json.authenticated && json.user) {
+          setLoggedInUser(json.user);
+        } else {
+          setLoggedInUser(null);
+        }
+      } else {
+        setLoggedInUser(null);
       }
     } catch (err) {
-      // unauthenticated
+      setLoggedInUser(null);
     }
   };
 
@@ -313,13 +332,13 @@ function LoginContent() {
 
       if (res.ok) {
         setShowLoginModal(false);
+        let dest = callbackUrl;
         if (callbackUrl === "/" && data.user?.role === "ADMIN_KEUANGAN") {
-          router.push("/keuangan");
+          dest = "/keuangan";
         } else if (callbackUrl === "/" && data.user?.role === "ADMIN_IBADAH") {
-          router.push("/kegiatan/jumat");
-        } else {
-          router.push(callbackUrl);
+          dest = "/kegiatan/jumat";
         }
+        window.location.replace(dest);
       } else {
         setLoginErrorMsg(data.error || "Username atau password salah.");
       }

@@ -60,7 +60,11 @@ export default function Sidebar() {
     } catch (e) {
       console.error("Logout error:", e);
     } finally {
-      window.location.href = "/login";
+      try {
+        sessionStorage.clear();
+        localStorage.clear();
+      } catch (e) {}
+      window.location.replace("/login");
     }
   };
 

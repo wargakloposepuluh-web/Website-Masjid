@@ -33,8 +33,14 @@ export default function Header() {
   const handleLogout = async () => {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
+    } catch (e) {
+      console.error("Logout error:", e);
     } finally {
-      window.location.href = "/login";
+      try {
+        sessionStorage.clear();
+        localStorage.clear();
+      } catch (e) {}
+      window.location.replace("/login");
     }
   };
 

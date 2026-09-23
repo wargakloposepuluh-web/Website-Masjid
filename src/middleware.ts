@@ -2,6 +2,16 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { verifySessionToken, AUTH_COOKIE_NAME } from "@/lib/auth";
 
+function addNoCacheHeaders(response: NextResponse): NextResponse {
+  response.headers.set(
+    "Cache-Control",
+    "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0, s-maxage=0"
+  );
+  response.headers.set("Pragma", "no-cache");
+  response.headers.set("Expires", "0");
+  return response;
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -25,17 +35,17 @@ export async function middleware(request: NextRequest) {
 
   // 3. Handle /login page (Portal Publik Masjid)
   if (pathname === "/login") {
-    return NextResponse.next();
+    return addNoCacheHeaders(NextResponse.next());
   }
 
   // 4. If unauthenticated -> redirect to /login
   if (!session) {
     if (pathname.startsWith("/api")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return addNoCacheHeaders(NextResponse.json({ error: "Unauthorized" }, { status: 401 }));
     }
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("callbackUrl", pathname);
-    return NextResponse.redirect(loginUrl);
+    return addNoCacheHeaders(NextResponse.redirect(loginUrl));
   }
 
   // 5. Role-Based Access Control (RBAC)
@@ -50,15 +60,15 @@ export async function middleware(request: NextRequest) {
   ) {
     if (role !== "SUPER_ADMIN") {
       if (pathname.startsWith("/api")) {
-        return NextResponse.json({ error: "Forbidden. Khusus Super Admin." }, { status: 403 });
+        return addNoCacheHeaders(NextResponse.json({ error: "Forbidden. Khusus Super Admin." }, { status: 403 }));
       }
       if (role === "ADMIN_IBADAH") {
-        return NextResponse.redirect(new URL("/kegiatan", request.url));
+        return addNoCacheHeaders(NextResponse.redirect(new URL("/kegiatan", request.url)));
       }
       if (role === "ADMIN_KEUANGAN") {
-        return NextResponse.redirect(new URL("/keuangan", request.url));
+        return addNoCacheHeaders(NextResponse.redirect(new URL("/keuangan", request.url)));
       }
-      return NextResponse.redirect(new URL("/", request.url));
+      return addNoCacheHeaders(NextResponse.redirect(new URL("/", request.url)));
     }
   }
 
@@ -66,12 +76,12 @@ export async function middleware(request: NextRequest) {
   if (pathname.startsWith("/keuangan") || pathname.startsWith("/api/keuangan")) {
     if (role !== "SUPER_ADMIN" && role !== "ADMIN_KEUANGAN") {
       if (pathname.startsWith("/api")) {
-        return NextResponse.json({ error: "Forbidden. Anda tidak memiliki akses ke Keuangan." }, { status: 403 });
+        return addNoCacheHeaders(NextResponse.json({ error: "Forbidden. Anda tidak memiliki akses ke Keuangan." }, { status: 403 }));
       }
       if (role === "ADMIN_IBADAH") {
-        return NextResponse.redirect(new URL("/kegiatan", request.url));
+        return addNoCacheHeaders(NextResponse.redirect(new URL("/kegiatan", request.url)));
       }
-      return NextResponse.redirect(new URL("/", request.url));
+      return addNoCacheHeaders(NextResponse.redirect(new URL("/", request.url)));
     }
   }
 
@@ -90,12 +100,12 @@ export async function middleware(request: NextRequest) {
   ) {
     if (role !== "SUPER_ADMIN" && role !== "ADMIN_SURAT") {
       if (pathname.startsWith("/api")) {
-        return NextResponse.json({ error: "Forbidden. Anda tidak memiliki akses ke Modul Surat." }, { status: 403 });
+        return addNoCacheHeaders(NextResponse.json({ error: "Forbidden. Anda tidak memiliki akses ke Modul Surat." }, { status: 403 }));
       }
       if (role === "ADMIN_IBADAH") {
-        return NextResponse.redirect(new URL("/kegiatan", request.url));
+        return addNoCacheHeaders(NextResponse.redirect(new URL("/kegiatan", request.url)));
       }
-      return NextResponse.redirect(new URL("/keuangan", request.url));
+      return addNoCacheHeaders(NextResponse.redirect(new URL("/keuangan", request.url)));
     }
   }
 
@@ -103,23 +113,23 @@ export async function middleware(request: NextRequest) {
   if (pathname.startsWith("/kegiatan") || pathname.startsWith("/api/kegiatan")) {
     if (role !== "SUPER_ADMIN" && role !== "ADMIN_IBADAH" && role !== "ADMIN_SURAT") {
       if (pathname.startsWith("/api")) {
-        return NextResponse.json({ error: "Forbidden. Anda tidak memiliki akses ke Modul Kegiatan." }, { status: 403 });
+        return addNoCacheHeaders(NextResponse.json({ error: "Forbidden. Anda tidak memiliki akses ke Modul Kegiatan." }, { status: 403 }));
       }
-      return NextResponse.redirect(new URL("/keuangan", request.url));
+      return addNoCacheHeaders(NextResponse.redirect(new URL("/keuangan", request.url)));
     }
   }
 
   // Root route "/" redirection for ADMIN_KEUANGAN and ADMIN_IBADAH
   if (pathname === "/") {
     if (role === "ADMIN_KEUANGAN") {
-      return NextResponse.redirect(new URL("/keuangan", request.url));
+      return addNoCacheHeaders(NextResponse.redirect(new URL("/keuangan", request.url)));
     }
     if (role === "ADMIN_IBADAH") {
-      return NextResponse.redirect(new URL("/kegiatan", request.url));
+      return addNoCacheHeaders(NextResponse.redirect(new URL("/kegiatan", request.url)));
     }
   }
 
-  return NextResponse.next();
+  return addNoCacheHeaders(NextResponse.next());
 }
 
 export const config = {
