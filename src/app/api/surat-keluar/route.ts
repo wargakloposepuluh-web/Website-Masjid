@@ -74,6 +74,7 @@ export async function POST(request: Request) {
         jabatanPenandatangan: body.jabatanPenandatangan,
         namaPenandatangan2: body.namaPenandatangan2 || null,
         jabatanPenandatangan2: body.jabatanPenandatangan2 || null,
+        penandatanganList: body.penandatanganList ? (typeof body.penandatanganList === "string" ? body.penandatanganList : JSON.stringify(body.penandatanganList)) : null,
         pakaiTtd: body.pakaiTtd !== undefined ? Boolean(body.pakaiTtd) : true,
         pakaiTtd2: body.pakaiTtd2 !== undefined ? Boolean(body.pakaiTtd2) : false,
         pakaiStempel: body.pakaiStempel !== undefined ? Boolean(body.pakaiStempel) : true,

@@ -17,9 +17,19 @@ import {
   MessageSquare,
   QrCode,
   Tv,
+  Plus,
+  Trash2,
+  UserCheck,
 } from "lucide-react";
 import { generateFormattedNomorSurat } from "@/lib/utils";
 import WhatsAppTab from "@/components/WhatsAppTab";
+
+export interface PenandatanganItem {
+  id: string;
+  nama: string;
+  jabatan: string;
+  ttdImageUrl?: string;
+}
 
 export default function PengaturanTemplatePage() {
   const [loading, setLoading] = useState(true);
@@ -62,6 +72,7 @@ export default function PengaturanTemplatePage() {
   const [penandatanganJabatan, setPenandatanganJabatan] = useState("");
   const [penandatanganNama2, setPenandatanganNama2] = useState("");
   const [penandatanganJabatan2, setPenandatanganJabatan2] = useState("");
+  const [daftarPenandatangan, setDaftarPenandatangan] = useState<PenandatanganItem[]>([]);
 
   const [ttdImageUrl, setTtdImageUrl] = useState("");
   const [ttdImage2Url, setTtdImage2Url] = useState("");
@@ -101,7 +112,7 @@ export default function PengaturanTemplatePage() {
         setMarginRight(data.marginRight ?? 2.0);
         setFontFamily(data.fontFamily || "Times New Roman");
         setFontSize(data.fontSize ?? 12);
-        setLineHeight(data.lineHeight ?? 1.35);
+        lineHeight && setLineHeight(data.lineHeight ?? 1.35);
         setParagrafSpacing(data.paragrafSpacing ?? 0.8);
         setFormatNomorSurat(
           data.formatNomorSurat || "{nomor}/PM-BM/{kode}/{bulan}/{tahun}"
@@ -116,6 +127,35 @@ export default function PengaturanTemplatePage() {
         setPenandatanganJabatan2(data.penandatanganJabatan2 || "");
         setTtdImageUrl(data.ttdImageUrl || "");
         setTtdImage2Url(data.ttdImage2Url || "");
+
+        // Muat daftar penandatangan dinamis
+        let list: PenandatanganItem[] = [];
+        if (data.daftarPenandatangan) {
+          try {
+            list = typeof data.daftarPenandatangan === "string"
+              ? JSON.parse(data.daftarPenandatangan)
+              : data.daftarPenandatangan;
+          } catch (e) {
+            console.error("Gagal parse daftarPenandatangan:", e);
+          }
+        }
+        if (!Array.isArray(list) || list.length === 0) {
+          list = [
+            {
+              id: "1",
+              nama: data.penandatanganNama || "H. Ahmad Syarifuddin, S.Ag.",
+              jabatan: data.penandatanganJabatan || "Ketua Takmir Masjid",
+              ttdImageUrl: data.ttdImageUrl || "",
+            },
+            {
+              id: "2",
+              nama: data.penandatanganNama2 || "Ustadz Muhammad Rizqi, M.Pd.",
+              jabatan: data.penandatanganJabatan2 || "Sekretaris Takmir",
+              ttdImageUrl: data.ttdImage2Url || "",
+            },
+          ];
+        }
+        setDaftarPenandatangan(list);
         setStempelImageUrl(data.stempelImageUrl || "");
         setStempelPosisiX(data.stempelPosisiX ?? -25);
         setStempelPosisiY(data.stempelPosisiY ?? -15);
@@ -164,9 +204,42 @@ export default function PengaturanTemplatePage() {
     }
   };
 
+  const handleTambahPenandatangan = () => {
+    const newIdx = daftarPenandatangan.length + 1;
+    const newItem: PenandatanganItem = {
+      id: Date.now().toString(),
+      nama: "",
+      jabatan: newIdx === 3 ? "Bendahara" : `Pejabat ${newIdx}`,
+      ttdImageUrl: "",
+    };
+    setDaftarPenandatangan([...daftarPenandatangan, newItem]);
+  };
+
+  const handleHapusPenandatangan = (index: number) => {
+    if (daftarPenandatangan.length <= 1) {
+      alert("Minimal harus ada 1 penandatangan");
+      return;
+    }
+    const updated = daftarPenandatangan.filter((_, idx) => idx !== index);
+    setDaftarPenandatangan(updated);
+  };
+
+  const handleUpdatePenandatangan = (
+    index: number,
+    key: keyof PenandatanganItem,
+    value: string
+  ) => {
+    const updated = [...daftarPenandatangan];
+    updated[index] = { ...updated[index], [key]: value };
+    setDaftarPenandatangan(updated);
+  };
+
   const handleSimpan = async () => {
     setSaving(true);
     try {
+      const p1 = daftarPenandatangan[0];
+      const p2 = daftarPenandatangan[1];
+
       const res = await fetch("/api/settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -193,12 +266,13 @@ export default function PengaturanTemplatePage() {
           defaultKalimatPembuka,
           defaultKalimatPenutup,
           defaultSalamPenutup,
-          penandatanganNama,
-          penandatanganJabatan,
-          penandatanganNama2,
-          penandatanganJabatan2,
-          ttdImageUrl,
-          ttdImage2Url,
+          penandatanganNama: p1 ? p1.nama : penandatanganNama,
+          penandatanganJabatan: p1 ? p1.jabatan : penandatanganJabatan,
+          penandatanganNama2: p2 ? p2.nama : penandatanganNama2,
+          penandatanganJabatan2: p2 ? p2.jabatan : penandatanganJabatan2,
+          ttdImageUrl: p1 ? p1.ttdImageUrl : ttdImageUrl,
+          ttdImage2Url: p2 ? p2.ttdImageUrl : ttdImage2Url,
+          daftarPenandatangan: JSON.stringify(daftarPenandatangan),
           stempelImageUrl,
           stempelPosisiX,
           stempelPosisiY,
@@ -330,7 +404,7 @@ export default function PengaturanTemplatePage() {
                   onClick={() => setKopImageUrl("")}
                   className="text-xs text-red-500 hover:text-red-700 font-medium px-3.5 py-1.5 border border-red-200 rounded-xl hover:bg-red-50 transition"
                 >
-                  Kembalikan ke Banner Bawaan
+                  Hapus Banner Kop
                 </button>
               )}
             </div>
@@ -340,12 +414,18 @@ export default function PengaturanTemplatePage() {
               <p className="text-xs font-semibold text-slate-600 mb-2">
                 Pratinjau Banner Kop yang Sedang Digunakan:
               </p>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={kopImageUrl || "/sample-kop-banner.svg"}
-                alt="Pratinjau Kop Surat"
-                className="w-full max-h-40 object-contain rounded-xl border border-slate-100 bg-white"
-              />
+              {kopImageUrl ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  src={kopImageUrl}
+                  alt="Pratinjau Kop Surat"
+                  className="w-full max-h-40 object-contain rounded-xl border border-slate-100 bg-white"
+                />
+              ) : (
+                <div className="py-6 text-center text-xs text-slate-400 italic border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+                  Belum ada banner kop surat yang diunggah.
+                </div>
+              )}
             </div>
           </div>
 
@@ -606,91 +686,126 @@ export default function PengaturanTemplatePage() {
             </p>
           </div>
 
-          {/* Pejabat 1 & 2 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs sm:text-sm">
-            {/* Pejabat 1 */}
-            <div className="bg-slate-50/60 p-6 rounded-2xl border border-slate-100 space-y-3.5">
-              <h3 className="font-bold text-slate-900 text-sm">
-                Penandatangan 1 (Ketua / Pejabat Utama)
+          {/* HEADER & DAFTAR PENANDATANGAN DINAMIS */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-100">
+            <div>
+              <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
+                <UserCheck className="w-4 h-4 text-emerald-600" />
+                Daftar Penandatangan Dokumen Surat
               </h3>
-              <div>
-                <label className="block font-medium text-slate-600 mb-1">
-                  Nama Lengkap & Gelar
-                </label>
-                <input
-                  type="text"
-                  value={penandatanganNama}
-                  onChange={(e) => setPenandatanganNama(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition"
-                />
-              </div>
-              <div>
-                <label className="block font-medium text-slate-600 mb-1">
-                  Jabatan Resmi
-                </label>
-                <input
-                  type="text"
-                  value={penandatanganJabatan}
-                  onChange={(e) => setPenandatanganJabatan(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition"
-                />
-              </div>
-              <div>
-                <label className="block font-medium text-slate-600 mb-1">
-                  Upload Scan TTD 1 (PNG Transparan)
-                </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) =>
-                    handleFileUpload(e, "ttd1", setTtdImageUrl)
-                  }
-                  className="text-xs text-slate-600 file:mr-2 file:py-2 file:px-3.5 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#16171b] hover:file:bg-black file:text-white cursor-pointer transition"
-                />
-              </div>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Atur nama, jabatan resmi, dan scan tanda tangan pejabat. Penandatangan yang ditambahkan di sini akan muncul sebagai pilihan saat membuat surat.
+              </p>
             </div>
+            <button
+              type="button"
+              onClick={handleTambahPenandatangan}
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shadow-sm transition active:scale-95 self-start sm:self-auto"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Tambah Penandatangan</span>
+            </button>
+          </div>
 
-            {/* Pejabat 2 */}
-            <div className="bg-slate-50/60 p-6 rounded-2xl border border-slate-100 space-y-3.5">
-              <h3 className="font-bold text-slate-900 text-sm">
-                Penandatangan 2 (Sekretaris / Pejabat Kedua)
-              </h3>
-              <div>
-                <label className="block font-medium text-slate-600 mb-1">
-                  Nama Lengkap & Gelar
-                </label>
-                <input
-                  type="text"
-                  value={penandatanganNama2}
-                  onChange={(e) => setPenandatanganNama2(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition"
-                />
+          {/* KARTU-KARTU PENANDATANGAN DINAMIS */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs sm:text-sm">
+            {daftarPenandatangan.map((item, index) => (
+              <div
+                key={item.id || index}
+                className="bg-slate-50/60 p-5 rounded-2xl border border-slate-200/80 space-y-3.5 relative hover:border-emerald-300 transition"
+              >
+                <div className="flex items-center justify-between pb-2 border-b border-slate-200/60">
+                  <div className="flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-emerald-600 text-white font-bold text-xs flex items-center justify-center">
+                      {index + 1}
+                    </span>
+                    <span className="font-bold text-slate-900 text-xs sm:text-sm">
+                      Penandatangan {index + 1} {index === 0 ? "(Utama)" : ""}
+                    </span>
+                  </div>
+                  {daftarPenandatangan.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => handleHapusPenandatangan(index)}
+                      className="text-xs text-red-500 hover:text-red-700 p-1.5 hover:bg-red-50 rounded-lg transition"
+                      title="Hapus penandatangan ini"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block font-medium text-slate-600 mb-1 text-xs">
+                    Nama Lengkap & Gelar
+                  </label>
+                  <input
+                    type="text"
+                    value={item.nama}
+                    placeholder="Contoh: H. Ahmad Syarifuddin, S.Ag."
+                    onChange={(e) =>
+                      handleUpdatePenandatangan(index, "nama", e.target.value)
+                    }
+                    className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-xs sm:text-sm transition"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-medium text-slate-600 mb-1 text-xs">
+                    Jabatan Resmi
+                  </label>
+                  <input
+                    type="text"
+                    value={item.jabatan}
+                    placeholder="Contoh: Ketua Takmir / Sekretaris / Bendahara"
+                    onChange={(e) =>
+                      handleUpdatePenandatangan(index, "jabatan", e.target.value)
+                    }
+                    className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-xs sm:text-sm transition"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-medium text-slate-600 mb-1 text-xs">
+                    Upload Scan TTD (PNG Transparan)
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) =>
+                        handleFileUpload(e, `ttd_${item.id || index}`, (url) =>
+                          handleUpdatePenandatangan(index, "ttdImageUrl", url)
+                        )
+                      }
+                      className="text-xs text-slate-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#16171b] hover:file:bg-black file:text-white cursor-pointer transition"
+                    />
+                    {uploadingField === `ttd_${item.id || index}` && (
+                      <span className="text-xs text-emerald-600 animate-pulse font-medium">
+                        Mengunggah...
+                      </span>
+                    )}
+                  </div>
+                  {item.ttdImageUrl && (
+                    <div className="mt-2.5 flex items-center gap-2 p-2 bg-white rounded-xl border border-slate-200 w-fit">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={item.ttdImageUrl}
+                        alt={`Scan TTD ${item.nama}`}
+                        className="h-10 max-w-[120px] object-contain"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleUpdatePenandatangan(index, "ttdImageUrl", "")}
+                        className="text-[11px] text-red-500 hover:text-red-700 font-medium px-2 py-1 rounded hover:bg-red-50 transition ml-2"
+                      >
+                        Hapus Gambar
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
-              <div>
-                <label className="block font-medium text-slate-600 mb-1">
-                  Jabatan Resmi
-                </label>
-                <input
-                  type="text"
-                  value={penandatanganJabatan2}
-                  onChange={(e) => setPenandatanganJabatan2(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition"
-                />
-              </div>
-              <div>
-                <label className="block font-medium text-slate-600 mb-1">
-                  Upload Scan TTD 2 (PNG Transparan)
-                </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) =>
-                    handleFileUpload(e, "ttd2", setTtdImage2Url)
-                  }
-                  className="text-xs text-slate-600 file:mr-2 file:py-2 file:px-3.5 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#16171b] hover:file:bg-black file:text-white cursor-pointer transition"
-                />
-              </div>
-            </div>
+            ))}
           </div>
 
           {/* CAP STEMPEL & SLIDER OVERLAY */}
@@ -795,7 +910,7 @@ export default function PengaturanTemplatePage() {
                   <div className="w-36 h-16 relative flex items-center justify-center">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={ttdImageUrl || "/sample-ttd.svg"}
+                      src={daftarPenandatangan[0]?.ttdImageUrl || ttdImageUrl || "/sample-ttd.svg"}
                       alt="TTD"
                       className="max-h-16 max-w-36 object-contain"
                     />
@@ -821,7 +936,7 @@ export default function PengaturanTemplatePage() {
                     </div>
                   </div>
                   <p className="text-[11px] font-bold underline mt-1 text-slate-800">
-                    {penandatanganNama || "Nama Penandatangan"}
+                    {daftarPenandatangan[0]?.nama || penandatanganNama || "Nama Penandatangan"}
                   </p>
                 </div>
               </div>

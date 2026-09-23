@@ -57,6 +57,17 @@ export function formatIndoDate(dateInput: Date | string | number): string {
   return `${day} ${month} ${year}`;
 }
 
+export function formatNumericDate(dateInput: Date | string | number, separator: string = "/"): string {
+  const d = new Date(dateInput);
+  if (isNaN(d.getTime())) return "";
+
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = d.getFullYear();
+
+  return `${day}${separator}${month}${separator}${year}`;
+}
+
 export function formatHijriDate(dateInput: Date | string | number): string {
   try {
     const d = new Date(dateInput);

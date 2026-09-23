@@ -24,7 +24,7 @@ import {
   BarChart3,
   BookOpen,
 } from "lucide-react";
-import { formatIndoDate } from "@/lib/utils";
+import { formatIndoDate, formatNumericDate } from "@/lib/utils";
 import ModalTransaksiKeuangan from "@/components/ModalTransaksiKeuangan";
 import ModalBuktiFoto from "@/components/ModalBuktiFoto";
 import type { RekapTahunanData } from "@/components/GrafikRekapTahunan";
@@ -486,8 +486,8 @@ export default function KeuanganPage() {
                       <td className="py-3.5 px-4 text-center font-mono font-semibold text-slate-500">
                         {idx + 1}
                       </td>
-                      <td className="py-3.5 px-4 font-bold text-slate-800 whitespace-nowrap">
-                        {formatIndoDate(item.tanggal)}
+                      <td className="py-3.5 px-4 font-mono font-bold text-slate-800 whitespace-nowrap">
+                        {formatNumericDate(item.tanggal)}
                       </td>
                       <td className="py-3.5 px-4">
                         <span
@@ -523,11 +523,6 @@ export default function KeuanganPage() {
                       </td>
                       <td className="py-3.5 px-4">
                         <div className="font-bold text-slate-900 leading-snug">{item.keterangan}</div>
-                        {item.dicatatOleh && (
-                          <div className="text-[11px] text-slate-500 font-medium mt-0.5">
-                            Oleh: {item.dicatatOleh}
-                          </div>
-                        )}
                       </td>
                       <td className="py-3.5 px-4 text-center">
                         {item.buktiFotoUrl ? (

@@ -27,6 +27,7 @@ import {
   Archive,
   LayoutGrid,
   BarChart3,
+  Printer,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 
@@ -145,6 +146,12 @@ export default function Sidebar() {
       name: "Pengaturan QRIS",
       href: "/keuangan/qris",
       icon: QrCode,
+      roles: ["SUPER_ADMIN", "ADMIN_KEUANGAN"],
+    },
+    {
+      name: "Pengaturan Cetak",
+      href: "/keuangan/pengaturan-cetak",
+      icon: Printer,
       roles: ["SUPER_ADMIN", "ADMIN_KEUANGAN"],
     },
     {

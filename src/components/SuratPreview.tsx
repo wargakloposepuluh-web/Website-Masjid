@@ -41,11 +41,13 @@ export interface SuratPreviewProps {
     pakaiTtd2?: boolean;
     pakaiStempel?: boolean;
     tembusan?: string;
+    penandatanganList?: any;
   };
   setting?: {
     namaOrganisasi?: string;
     alamatOrganisasi?: string;
     kontakOrganisasi?: string;
+    daftarPenandatangan?: any;
     kopType?: string;
     kopImageUrl?: string;
     logoKiriUrl?: string;
@@ -321,12 +323,86 @@ export default function SuratPreview({
   const logoKiri = setting.logoKiriUrl || "/logo-masjid.svg";
   const logoKanan = setting.logoKananUrl;
   const ttdImg = setting.ttdImageUrl || "/sample-ttd.svg";
-  const ttdImg2 = setting.ttdImage2Url || "/sample-ttd.svg";
   const stempelImg = setting.stempelImageUrl || "/sample-stempel.svg";
 
-  const isDuaTtd = Boolean(
-    surat.namaPenandatangan2 || setting.penandatanganNama2
-  );
+  // Resolusi daftar penandatangan aktif
+  let activeSigners: {
+    id: string;
+    nama: string;
+    jabatan: string;
+    ttdImageUrl?: string;
+    pakaiTtd: boolean;
+  }[] = [];
+
+  if (surat.penandatanganList) {
+    try {
+      activeSigners =
+        typeof surat.penandatanganList === "string"
+          ? JSON.parse(surat.penandatanganList)
+          : surat.penandatanganList;
+    } catch (e) {
+      console.error("Gagal parse penandatanganList di SuratPreview:", e);
+    }
+  }
+
+  // Fallback ke data legacy jika penandatanganList kosong
+  if (!Array.isArray(activeSigners) || activeSigners.length === 0) {
+    const p1Nama = surat.namaPenandatangan || setting.penandatanganNama || "";
+    const p1Jabatan = surat.jabatanPenandatangan || setting.penandatanganJabatan || "Ketua";
+    const p2Nama = surat.namaPenandatangan2 || setting.penandatanganNama2 || "";
+    const p2Jabatan = surat.jabatanPenandatangan2 || setting.penandatanganJabatan2 || "Sekretaris";
+
+    if (p1Nama) {
+      activeSigners.push({
+        id: "1",
+        nama: p1Nama,
+        jabatan: p1Jabatan,
+        ttdImageUrl: setting.ttdImageUrl || "/sample-ttd.svg",
+        pakaiTtd: surat.pakaiTtd !== false,
+      });
+    }
+
+    if (p2Nama) {
+      activeSigners.push({
+        id: "2",
+        nama: p2Nama,
+        jabatan: p2Jabatan,
+        ttdImageUrl: setting.ttdImage2Url || "/sample-ttd.svg",
+        pakaiTtd: surat.pakaiTtd2 === true,
+      });
+    }
+  }
+
+  // Lengkapi fallback ttdImageUrl dari daftar master jika kosong
+  let masterSigners: any[] = [];
+  if (setting.daftarPenandatangan) {
+    try {
+      masterSigners =
+        typeof setting.daftarPenandatangan === "string"
+          ? JSON.parse(setting.daftarPenandatangan)
+          : setting.daftarPenandatangan;
+    } catch (e) {}
+  }
+
+  activeSigners = activeSigners.map((s, idx) => {
+    let url = s.ttdImageUrl;
+    if (!url) {
+      const match = masterSigners.find(
+        (m) => m.nama?.trim().toLowerCase() === s.nama?.trim().toLowerCase()
+      );
+      if (match?.ttdImageUrl) {
+        url = match.ttdImageUrl;
+      } else if (idx === 0) {
+        url = setting.ttdImageUrl || "/sample-ttd.svg";
+      } else if (idx === 1) {
+        url = setting.ttdImage2Url || "/sample-ttd.svg";
+      }
+    }
+    return {
+      ...s,
+      ttdImageUrl: url || "/sample-ttd.svg",
+    };
+  });
 
   return (
     <div className="flex flex-col items-center w-full">
@@ -474,21 +550,20 @@ export default function SuratPreview({
             >
             {/* MAIN CONTENT WRAPPER */}
             <div className="flex-1 flex flex-col">
-              {/* KOP SURAT (BANNER GAMBAR) - DIPERBESAR 110% */}
-              <div className="mb-2.5 flex justify-center overflow-visible">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={setting.kopImageUrl || "/sample-kop-banner.svg"}
-                  alt="Kop Surat"
-                  className="w-[110%] max-w-none object-contain"
-                  style={{
-                    width: "110%",
-                    maxWidth: "none",
-                    marginLeft: "-5%",
-                    marginRight: "-5%",
-                  }}
-                />
-              </div>
+              {/* KOP SURAT (BANNER GAMBAR) - 100% */}
+              {setting.kopImageUrl && (
+                <div className="mb-2.5 flex justify-center">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={setting.kopImageUrl}
+                    alt="Kop Surat"
+                    className="w-full object-contain"
+                    style={{
+                      width: "100%",
+                    }}
+                  />
+                </div>
+              )}
 
               {/* BARIS IDENTITAS SURAT & TANGGAL */}
               <div className="flex justify-between items-start mb-2 text-[11pt]">
@@ -678,93 +753,18 @@ export default function SuratPreview({
                     {setting.namaOrganisasi || "PENGURUS MASJID"}
                   </p>
 
-                  {isDuaTtd ? (
-                    /* Format Dua Penandatangan (Kiri & Kanan) */
-                    <div className="grid grid-cols-2 gap-8 text-center">
-                      {/* Penandatangan 1 (Kiri) */}
-                      <div className="flex flex-col items-center">
-                        <p className="font-bold text-[11pt] text-black">
-                          {surat.jabatanPenandatangan ||
-                            setting.penandatanganJabatan ||
-                            "Ketua"}
-                        </p>
-                        <div className="h-16 flex items-center justify-center relative my-0.5">
-                          {surat.pakaiTtd !== false && (
-                            /* eslint-disable-next-line @next/next/no-img-element */
-                            <img
-                              src={ttdImg}
-                              alt="Tanda Tangan 1"
-                              className="max-h-14 max-w-40 object-contain"
-                            />
-                          )}
-                        </div>
-                        <p className="font-bold underline text-[11pt] text-black">
-                          {surat.namaPenandatangan ||
-                            setting.penandatanganNama ||
-                            "Nama Pejabat 1"}
-                        </p>
-                      </div>
-
-                      {/* Penandatangan 2 (Kanan) + Stempel */}
-                      <div className="flex flex-col items-center relative">
-                        <p className="font-bold text-[11pt] text-black">
-                          {surat.jabatanPenandatangan2 ||
-                            setting.penandatanganJabatan2 ||
-                            "Sekretaris"}
-                        </p>
-                        <div className="h-16 flex items-center justify-center relative my-0.5 w-full">
-                          {surat.pakaiTtd2 !== false && (
-                            /* eslint-disable-next-line @next/next/no-img-element */
-                            <img
-                              src={ttdImg2}
-                              alt="Tanda Tangan 2"
-                              className="max-h-14 max-w-40 object-contain"
-                            />
-                          )}
-
-                          {/* Cap Stempel Overlay */}
-                          {surat.pakaiStempel !== false && (
-                            <div
-                              className="absolute pointer-events-none select-none z-10"
-                              style={{
-                                left: `calc(50% + ${stempelX}px)`,
-                                top: `calc(50% + ${stempelY}px)`,
-                                transform: "translate(-50%, -50%) rotate(-4deg)",
-                                opacity: stempelOpacity,
-                                width: `${stempelSize}px`,
-                                height: `${stempelSize}px`,
-                              }}
-                            >
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img
-                                src={stempelImg}
-                                alt="Stempel Cap"
-                                className="w-full h-full object-contain"
-                              />
-                            </div>
-                          )}
-                        </div>
-                        <p className="font-bold underline text-[11pt] text-black">
-                          {surat.namaPenandatangan2 ||
-                            setting.penandatanganNama2 ||
-                            "Nama Pejabat 2"}
-                        </p>
-                      </div>
-                    </div>
-                  ) : (
+                  {activeSigners.length === 1 ? (
                     /* Format Satu Penandatangan (Tunggal) */
                     <div className="flex justify-end pr-8">
                       <div className="w-64 text-center relative">
                         <p className="font-bold text-[11pt] text-black">
-                          {surat.jabatanPenandatangan ||
-                            setting.penandatanganJabatan ||
-                            "Ketua"}
+                          {activeSigners[0].jabatan || "Ketua"}
                         </p>
                         <div className="h-16 flex items-center justify-center relative my-0.5">
-                          {surat.pakaiTtd !== false && (
+                          {activeSigners[0].pakaiTtd !== false && (
                             /* eslint-disable-next-line @next/next/no-img-element */
                             <img
-                              src={ttdImg}
+                              src={activeSigners[0].ttdImageUrl || ttdImg}
                               alt="Tanda Tangan"
                               className="max-h-14 max-w-40 object-contain"
                             />
@@ -793,11 +793,147 @@ export default function SuratPreview({
                           )}
                         </div>
                         <p className="font-bold underline text-[11pt] text-black">
-                          {surat.namaPenandatangan ||
-                            setting.penandatanganNama ||
-                            "Nama Penandatangan"}
+                          {activeSigners[0].nama || "Nama Penandatangan"}
                         </p>
                       </div>
+                    </div>
+                  ) : activeSigners.length === 3 ? (
+                    /* Format Tiga Penandatangan (3 Kolom Berdampingan) */
+                    <div className="grid grid-cols-3 gap-4 text-center">
+                      {activeSigners.map((signer, idx) => (
+                        <div key={signer.id || idx} className="flex flex-col items-center relative">
+                          <p className="font-bold text-[10.5pt] text-black leading-tight min-h-[2.5rem] flex items-center justify-center">
+                            {signer.jabatan}
+                          </p>
+                          <div className="h-16 flex items-center justify-center relative my-0.5 w-full">
+                            {signer.pakaiTtd !== false && (
+                              /* eslint-disable-next-line @next/next/no-img-element */
+                              <img
+                                src={signer.ttdImageUrl || ttdImg}
+                                alt={`Tanda Tangan ${idx + 1}`}
+                                className="max-h-14 max-w-36 object-contain"
+                              />
+                            )}
+
+                            {/* Cap Stempel di penandatangan kanan */}
+                            {idx === 2 && surat.pakaiStempel !== false && (
+                              <div
+                                className="absolute pointer-events-none select-none z-10"
+                                style={{
+                                  left: `calc(50% + ${stempelX}px)`,
+                                  top: `calc(50% + ${stempelY}px)`,
+                                  transform: "translate(-50%, -50%) rotate(-4deg)",
+                                  opacity: stempelOpacity,
+                                  width: `${stempelSize}px`,
+                                  height: `${stempelSize}px`,
+                                }}
+                              >
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={stempelImg}
+                                  alt="Stempel Cap"
+                                  className="w-full h-full object-contain"
+                                />
+                              </div>
+                            )}
+                          </div>
+                          <p className="font-bold underline text-[10.5pt] text-black">
+                            {signer.nama}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : activeSigners.length >= 4 ? (
+                    /* Format Empat atau Lebih Penandatangan (Grid 2 Kolom) */
+                    <div className="grid grid-cols-2 gap-x-8 gap-y-5 text-center">
+                      {activeSigners.map((signer, idx) => (
+                        <div key={signer.id || idx} className="flex flex-col items-center relative">
+                          <p className="font-bold text-[10.5pt] text-black">
+                            {signer.jabatan}
+                          </p>
+                          <div className="h-16 flex items-center justify-center relative my-0.5 w-full">
+                            {signer.pakaiTtd !== false && (
+                              /* eslint-disable-next-line @next/next/no-img-element */
+                              <img
+                                src={signer.ttdImageUrl || ttdImg}
+                                alt={`Tanda Tangan ${idx + 1}`}
+                                className="max-h-14 max-w-40 object-contain"
+                              />
+                            )}
+
+                            {/* Cap Stempel */}
+                            {idx === 1 && surat.pakaiStempel !== false && (
+                              <div
+                                className="absolute pointer-events-none select-none z-10"
+                                style={{
+                                  left: `calc(50% + ${stempelX}px)`,
+                                  top: `calc(50% + ${stempelY}px)`,
+                                  transform: "translate(-50%, -50%) rotate(-4deg)",
+                                  opacity: stempelOpacity,
+                                  width: `${stempelSize}px`,
+                                  height: `${stempelSize}px`,
+                                }}
+                              >
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={stempelImg}
+                                  alt="Stempel Cap"
+                                  className="w-full h-full object-contain"
+                                />
+                              </div>
+                            )}
+                          </div>
+                          <p className="font-bold underline text-[10.5pt] text-black">
+                            {signer.nama}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    /* Format Dua Penandatangan (Kiri & Kanan Standar) */
+                    <div className="grid grid-cols-2 gap-8 text-center">
+                      {activeSigners.map((signer, idx) => (
+                        <div key={signer.id || idx} className="flex flex-col items-center relative">
+                          <p className="font-bold text-[11pt] text-black">
+                            {signer.jabatan}
+                          </p>
+                          <div className="h-16 flex items-center justify-center relative my-0.5 w-full">
+                            {signer.pakaiTtd !== false && (
+                              /* eslint-disable-next-line @next/next/no-img-element */
+                              <img
+                                src={signer.ttdImageUrl || ttdImg}
+                                alt={`Tanda Tangan ${idx + 1}`}
+                                className="max-h-14 max-w-40 object-contain"
+                              />
+                            )}
+
+                            {/* Cap Stempel Overlay di Penandatangan Kanan */}
+                            {idx === 1 && surat.pakaiStempel !== false && (
+                              <div
+                                className="absolute pointer-events-none select-none z-10"
+                                style={{
+                                  left: `calc(50% + ${stempelX}px)`,
+                                  top: `calc(50% + ${stempelY}px)`,
+                                  transform: "translate(-50%, -50%) rotate(-4deg)",
+                                  opacity: stempelOpacity,
+                                  width: `${stempelSize}px`,
+                                  height: `${stempelSize}px`,
+                                }}
+                              >
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={stempelImg}
+                                  alt="Stempel Cap"
+                                  className="w-full h-full object-contain"
+                                />
+                              </div>
+                            )}
+                          </div>
+                          <p className="font-bold underline text-[11pt] text-black">
+                            {signer.nama}
+                          </p>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>

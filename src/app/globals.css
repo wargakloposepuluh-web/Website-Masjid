@@ -120,15 +120,13 @@ body {
 
   /* Lembar Cetak Laporan Kas (Ukuran F4 / Folio: Potret 215x330mm & Lanskap 330x215mm) */
   .print-laporan {
-    position: absolute !important;
-    left: 0 !important;
-    top: 0 !important;
+    position: relative !important;
     margin: 0 !important;
     box-shadow: none !important;
     border: none !important;
     background: #ffffff !important;
     box-sizing: border-box !important;
-    overflow: visible !important;
+    overflow: hidden !important;
     z-index: 999999 !important;
   }
 
@@ -148,6 +146,10 @@ body {
     padding: 0 !important;
     width: 215mm !important;
     position: static !important;
+  }
+
+  body:has(.print-laporan.is-landscape) .print-transform-none {
+    width: 330mm !important;
   }
 }
 

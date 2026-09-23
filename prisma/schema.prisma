@@ -35,6 +35,7 @@ model Setting {
   penandatanganJabatan  String   @default("Ketua DKM Al-Muhajirin")
   penandatanganNama2    String?  @default("Ustadz Muhammad Rizqi, M.Pd.")
   penandatanganJabatan2 String?  @default("Sekretaris DKM")
+  daftarPenandatangan   String?  // JSON string: array of { id, nama, jabatan, ttdImageUrl }
   ttdImageUrl           String?
   ttdImage2Url          String?
   stempelImageUrl       String?
@@ -56,6 +57,22 @@ model Setting {
   kecepatanRT           Int      @default(40)
   waGatewayUrl          String?  @default("http://127.0.0.1:3001")
   waGatewayAuth         String?
+  // Pengaturan Cetak Laporan Keuangan
+  laporanMarginTop      Float    @default(1.0) // cm
+  laporanMarginBottom   Float    @default(1.0) // cm
+  laporanMarginLeft     Float    @default(1.2) // cm
+  laporanMarginRight    Float    @default(1.2) // cm
+  laporanKopType        String   @default("image") // "image" | "text" | "none"
+  laporanKopImageUrl    String?
+  laporanJudul          String?  @default("BUKU LAPORAN KEUANGAN KAS MASJID")
+  laporanSubJudul       String?  @default("MASJID BAITUL MAGHFIRAH KLOPOSEPULUH")
+  laporanDaftarPenandatangan String? // JSON string: array of { id, peran, jabatan, nama, ttdImageUrl, pakaiTtd, tampilkanStempel, tampilkanTanggal }
+  laporanTampilkanKop   Boolean  @default(true)
+  laporanTampilkanRingkasan Boolean @default(true)
+  laporanTampilkanTtd   Boolean  @default(true)
+  laporanTampilkanStempel Boolean @default(true)
+  laporanUkuranKertas   String   @default("F4") // "F4" | "A4"
+  laporanFontSize       Int      @default(12) // pt
   updatedAt             DateTime @updatedAt
 }
 
@@ -94,6 +111,7 @@ model SuratKeluar {
   jabatanPenandatangan String
   namaPenandatangan2   String?
   jabatanPenandatangan2 String?
+  penandatanganList    String?  // JSON string: array of { id, nama, jabatan, ttdImageUrl, pakaiTtd }
   pakaiTtd             Boolean  @default(true)
   pakaiTtd2            Boolean  @default(false)
   pakaiStempel         Boolean  @default(true)

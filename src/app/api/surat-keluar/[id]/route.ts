@@ -64,6 +64,7 @@ export async function PUT(
         jabatanPenandatangan: body.jabatanPenandatangan,
         namaPenandatangan2: body.namaPenandatangan2,
         jabatanPenandatangan2: body.jabatanPenandatangan2,
+        penandatanganList: body.penandatanganList !== undefined ? (typeof body.penandatanganList === "string" ? body.penandatanganList : JSON.stringify(body.penandatanganList)) : undefined,
         pakaiTtd: body.pakaiTtd !== undefined ? Boolean(body.pakaiTtd) : undefined,
         pakaiTtd2: body.pakaiTtd2 !== undefined ? Boolean(body.pakaiTtd2) : undefined,
         pakaiStempel: body.pakaiStempel !== undefined ? Boolean(body.pakaiStempel) : undefined,

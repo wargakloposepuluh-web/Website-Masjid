@@ -7,6 +7,7 @@ import {
   BookOpen,
   PlusCircle,
   RefreshCw,
+  Printer,
 } from "lucide-react";
 import GrafikRekapTahunan, { RekapTahunanData } from "@/components/GrafikRekapTahunan";
 

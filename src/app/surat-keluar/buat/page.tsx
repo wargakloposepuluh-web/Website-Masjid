@@ -19,6 +19,10 @@ import {
   Sliders,
   ChevronDown,
   ChevronUp,
+  Plus,
+  Trash2,
+  UserPlus,
+  UserCheck,
 } from "lucide-react";
 import {
   TEMPLATES_SURAT,
@@ -27,6 +31,14 @@ import {
   getKodeJenisSurat,
 } from "@/lib/templatesSurat";
 import { parseIndoDateToYmd, formatYmdToIndoHariTanggal } from "@/lib/utils";
+
+export interface SuratPenandatanganItem {
+  id: string;
+  nama: string;
+  jabatan: string;
+  ttdImageUrl?: string;
+  pakaiTtd: boolean;
+}
 
 export default function BuatSuratKeluarPage() {
   const router = useRouter();
@@ -73,6 +85,11 @@ export default function BuatSuratKeluarPage() {
   const [namaPenandatangan2, setNamaPenandatangan2] = useState("");
   const [jabatanPenandatangan2, setJabatanPenandatangan2] = useState("");
 
+  const [penandatanganList, setPenandatanganList] = useState<SuratPenandatanganItem[]>([]);
+  const [masterPenandatangan, setMasterPenandatangan] = useState<
+    { id: string; nama: string; jabatan: string; ttdImageUrl?: string }[]
+  >([]);
+
   const [pakaiTtd, setPakaiTtd] = useState(true);
   const [pakaiTtd2, setPakaiTtd2] = useState(true);
   const [pakaiStempel, setPakaiStempel] = useState(true);
@@ -91,10 +108,50 @@ export default function BuatSuratKeluarPage() {
         setKalimatPenutup(setData.defaultKalimatPenutup || "");
         setSalamPenutup(setData.defaultSalamPenutup || "Wassalamu'alaikum Warahmatullahi Wabarakatuh,");
         setTempatSurat(setData.kotaSurat || "Jakarta");
-        setNamaPenandatangan(setData.penandatanganNama || "H. Sullamul Hadi Nurmawan, S.Th.I");
-        setJabatanPenandatangan(setData.penandatanganJabatan || "Ketua");
-        setNamaPenandatangan2(setData.penandatanganNama2 || "Awal Nur Hakim S.Pd.Gr");
-        setJabatanPenandatangan2(setData.penandatanganJabatan2 || "Sekretaris");
+        setNamaPenandatangan(setData.penandatanganNama || "H. Ahmad Syarifuddin, S.Ag.");
+        setJabatanPenandatangan(setData.penandatanganJabatan || "Ketua Takmir");
+        setNamaPenandatangan2(setData.penandatanganNama2 || "Ustadz Muhammad Rizqi, M.Pd.");
+        setJabatanPenandatangan2(setData.penandatanganJabatan2 || "Sekretaris Takmir");
+
+        // Parse master penandatangan dari pengaturan
+        let masterList: any[] = [];
+        if (setData.daftarPenandatangan) {
+          try {
+            masterList =
+              typeof setData.daftarPenandatangan === "string"
+                ? JSON.parse(setData.daftarPenandatangan)
+                : setData.daftarPenandatangan;
+          } catch (e) {
+            console.error("Gagal parse daftarPenandatangan:", e);
+          }
+        }
+        if (!Array.isArray(masterList) || masterList.length === 0) {
+          masterList = [
+            {
+              id: "1",
+              nama: setData.penandatanganNama || "H. Ahmad Syarifuddin, S.Ag.",
+              jabatan: setData.penandatanganJabatan || "Ketua Takmir",
+              ttdImageUrl: setData.ttdImageUrl || "",
+            },
+            {
+              id: "2",
+              nama: setData.penandatanganNama2 || "Ustadz Muhammad Rizqi, M.Pd.",
+              jabatan: setData.penandatanganJabatan2 || "Sekretaris Takmir",
+              ttdImageUrl: setData.ttdImage2Url || "",
+            },
+          ];
+        }
+        setMasterPenandatangan(masterList);
+
+        // Pasang penandatangan awal untuk surat baru
+        const initialList: SuratPenandatanganItem[] = masterList.slice(0, 2).map((m) => ({
+          id: m.id || Date.now().toString(),
+          nama: m.nama,
+          jabatan: m.jabatan,
+          ttdImageUrl: m.ttdImageUrl || "",
+          pakaiTtd: true,
+        }));
+        setPenandatanganList(initialList);
 
         // Fetch nomor surat berikutnya dengan kode default UND dan tanggal hari ini
         const todayStr = new Date().toISOString().split("T")[0];
@@ -181,6 +238,49 @@ export default function BuatSuratKeluarPage() {
     }
   };
 
+  const handleTambahDariMaster = (masterItem: {
+    id: string;
+    nama: string;
+    jabatan: string;
+    ttdImageUrl?: string;
+  }) => {
+    const newItem: SuratPenandatanganItem = {
+      id: Date.now().toString(),
+      nama: masterItem.nama,
+      jabatan: masterItem.jabatan,
+      ttdImageUrl: masterItem.ttdImageUrl || "",
+      pakaiTtd: true,
+    };
+    setPenandatanganList([...penandatanganList, newItem]);
+  };
+
+  const handleTambahKustom = () => {
+    const newIdx = penandatanganList.length + 1;
+    const newItem: SuratPenandatanganItem = {
+      id: Date.now().toString(),
+      nama: "",
+      jabatan: `Pejabat ${newIdx}`,
+      ttdImageUrl: "",
+      pakaiTtd: true,
+    };
+    setPenandatanganList([...penandatanganList, newItem]);
+  };
+
+  const handleHapusPenandatangan = (index: number) => {
+    const updated = penandatanganList.filter((_, idx) => idx !== index);
+    setPenandatanganList(updated);
+  };
+
+  const handleUpdatePenandatangan = (
+    index: number,
+    key: keyof SuratPenandatanganItem,
+    value: any
+  ) => {
+    const updated = [...penandatanganList];
+    updated[index] = { ...updated[index], [key]: value };
+    setPenandatanganList(updated);
+  };
+
   const handleSimpan = async (statusSurat: "Final" | "Draft" = "Final") => {
     if (!perihal.trim() || !tujuan.trim() || !isiSurat.trim()) {
       alert("Mohon lengkapi Perihal, Penerima, dan Isi Surat.");
@@ -210,12 +310,13 @@ export default function BuatSuratKeluarPage() {
           kalimatPenutup,
           salamPenutup,
           tempatSurat,
-          namaPenandatangan,
-          jabatanPenandatangan,
-          namaPenandatangan2,
-          jabatanPenandatangan2,
-          pakaiTtd,
-          pakaiTtd2,
+          namaPenandatangan: penandatanganList[0]?.nama || namaPenandatangan,
+          jabatanPenandatangan: penandatanganList[0]?.jabatan || jabatanPenandatangan,
+          namaPenandatangan2: penandatanganList[1]?.nama || null,
+          jabatanPenandatangan2: penandatanganList[1]?.jabatan || null,
+          pakaiTtd: penandatanganList[0] ? penandatanganList[0].pakaiTtd : pakaiTtd,
+          pakaiTtd2: penandatanganList[1] ? penandatanganList[1].pakaiTtd : false,
+          penandatanganList: JSON.stringify(penandatanganList),
           pakaiStempel,
           tembusan,
           status: statusSurat,
@@ -256,14 +357,15 @@ export default function BuatSuratKeluarPage() {
     kalimatPenutup,
     salamPenutup,
     tempatSurat,
-    namaPenandatangan,
-    jabatanPenandatangan,
-    namaPenandatangan2,
-    jabatanPenandatangan2,
-    pakaiTtd,
-    pakaiTtd2,
+    namaPenandatangan: penandatanganList[0]?.nama || namaPenandatangan,
+    jabatanPenandatangan: penandatanganList[0]?.jabatan || jabatanPenandatangan,
+    namaPenandatangan2: penandatanganList[1]?.nama || "",
+    jabatanPenandatangan2: penandatanganList[1]?.jabatan || "",
+    pakaiTtd: penandatanganList[0] ? penandatanganList[0].pakaiTtd : pakaiTtd,
+    pakaiTtd2: penandatanganList[1] ? penandatanganList[1].pakaiTtd : false,
     pakaiStempel,
     tembusan,
+    penandatanganList,
   };
 
   return (
@@ -688,90 +790,164 @@ export default function BuatSuratKeluarPage() {
                 <span className="text-[11px] text-slate-400 font-medium">Langkah 3 dari 3</span>
               </div>
 
-              {/* Checklist TTD & Stempel */}
-              <div className="grid grid-cols-3 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs">
-                <label className="flex items-center gap-1.5 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={pakaiTtd}
-                    onChange={(e) => setPakaiTtd(e.target.checked)}
-                    className="rounded text-emerald-600 focus:ring-emerald-500"
-                  />
-                  <span className="font-medium text-slate-700">Scan TTD 1</span>
-                </label>
-
-                <label className="flex items-center gap-1.5 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={pakaiTtd2}
-                    onChange={(e) => setPakaiTtd2(e.target.checked)}
-                    className="rounded text-emerald-600 focus:ring-emerald-500"
-                  />
-                  <span className="font-medium text-slate-700">Scan TTD 2</span>
-                </label>
-
-                <label className="flex items-center gap-1.5 cursor-pointer select-none">
+              {/* Checklist Global: Cap Stempel */}
+              <div className="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs">
+                <label className="flex items-center gap-2 cursor-pointer select-none">
                   <input
                     type="checkbox"
                     checked={pakaiStempel}
                     onChange={(e) => setPakaiStempel(e.target.checked)}
-                    className="rounded text-orange-500 focus:ring-orange-400"
+                    className="rounded text-orange-500 focus:ring-orange-400 w-4 h-4"
                   />
-                  <span className="font-medium text-slate-700">Cap Stempel</span>
+                  <span className="font-semibold text-slate-800">
+                    Bubuhkan Cap Stempel Resmi
+                  </span>
                 </label>
+                <span className="text-[11px] text-slate-500">
+                  (Posisi stempel dapat diatur di menu Pengaturan Surat)
+                </span>
               </div>
 
-              {/* Nama & Jabatan Pejabat 1 & 2 */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                    Nama Pejabat 1 (Kiri/Ketua)
+              {/* DAFTAR PENANDATANGAN AKTIF PADA SURAT INI */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                    <UserCheck className="w-4 h-4 text-emerald-600" />
+                    Penandatangan Surat ({penandatanganList.length} orang)
                   </label>
-                  <input
-                    type="text"
-                    value={namaPenandatangan}
-                    onChange={(e) => setNamaPenandatangan(e.target.value)}
-                    className="w-full text-xs px-2.5 py-1.5 border border-slate-200 rounded-lg"
-                  />
+                  <button
+                    type="button"
+                    onClick={handleTambahKustom}
+                    className="text-[11px] font-semibold text-slate-600 hover:text-slate-900 flex items-center gap-1 bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded-lg transition"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    Tambah Manual
+                  </button>
                 </div>
-                <div>
-                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                    Jabatan Pejabat 1
-                  </label>
-                  <input
-                    type="text"
-                    value={jabatanPenandatangan}
-                    onChange={(e) => setJabatanPenandatangan(e.target.value)}
-                    className="w-full text-xs px-2.5 py-1.5 border border-slate-200 rounded-lg"
-                  />
-                </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                    Nama Pejabat 2 (Kanan/Sekretaris)
-                  </label>
-                  <input
-                    type="text"
-                    value={namaPenandatangan2}
-                    onChange={(e) => setNamaPenandatangan2(e.target.value)}
-                    placeholder="Kosongkan jika hanya 1 orang"
-                    className="w-full text-xs px-2.5 py-1.5 border border-slate-200 rounded-lg"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                    Jabatan Pejabat 2
-                  </label>
-                  <input
-                    type="text"
-                    value={jabatanPenandatangan2}
-                    onChange={(e) => setJabatanPenandatangan2(e.target.value)}
-                    placeholder="Sekretaris Masjid"
-                    className="w-full text-xs px-2.5 py-1.5 border border-slate-200 rounded-lg"
-                  />
-                </div>
+                {/* Kartu per Penandatangan */}
+                {penandatanganList.map((item, index) => (
+                  <div
+                    key={item.id || index}
+                    className="bg-white p-3.5 rounded-xl border border-slate-200 space-y-2.5 shadow-sm"
+                  >
+                    <div className="flex items-center justify-between pb-1.5 border-b border-slate-100">
+                      <div className="flex items-center gap-2">
+                        <span className="w-5 h-5 rounded-full bg-emerald-600 text-white font-bold text-[10px] flex items-center justify-center">
+                          {index + 1}
+                        </span>
+                        <span className="text-xs font-bold text-slate-800">
+                          {index === 0
+                            ? "Penandatangan 1 (Utama)"
+                            : index === 1
+                            ? "Penandatangan 2"
+                            : `Penandatangan ${index + 1}`}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <label className="flex items-center gap-1.5 text-xs cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={item.pakaiTtd}
+                            onChange={(e) =>
+                              handleUpdatePenandatangan(index, "pakaiTtd", e.target.checked)
+                            }
+                            className="rounded text-emerald-600 focus:ring-emerald-500"
+                          />
+                          <span className="text-[11px] text-slate-600 font-medium">
+                            Scan TTD
+                          </span>
+                        </label>
+
+                        {penandatanganList.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => handleHapusPenandatangan(index)}
+                            className="text-red-500 hover:text-red-700 p-1 hover:bg-red-50 rounded transition"
+                            title="Hapus penandatangan dari surat ini"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div>
+                        <label className="block text-[10px] font-medium text-slate-500 mb-0.5">
+                          Nama Lengkap & Gelar
+                        </label>
+                        <input
+                          type="text"
+                          value={item.nama}
+                          onChange={(e) =>
+                            handleUpdatePenandatangan(index, "nama", e.target.value)
+                          }
+                          className="w-full text-xs px-2.5 py-1.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-medium text-slate-500 mb-0.5">
+                          Jabatan
+                        </label>
+                        <input
+                          type="text"
+                          value={item.jabatan}
+                          onChange={(e) =>
+                            handleUpdatePenandatangan(index, "jabatan", e.target.value)
+                          }
+                          className="w-full text-xs px-2.5 py-1.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {/* OPSI PENAMBAHAN PENANDATANGAN SESUAI PENGATURAN SURAT */}
+                {masterPenandatangan.length > 0 && (
+                  <div className="mt-3 p-3.5 bg-emerald-50/70 rounded-xl border border-emerald-200 space-y-2">
+                    <p className="text-[11px] font-bold text-emerald-900 flex items-center gap-1.5">
+                      <UserPlus className="w-3.5 h-3.5 text-emerald-700" />
+                      Pilihan Penandatangan dari Pengaturan Surat:
+                    </p>
+                    <p className="text-[10px] text-emerald-700/90 leading-tight">
+                      Klik salah satu pejabat di bawah ini untuk menambahkannya langsung ke surat:
+                    </p>
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {masterPenandatangan.map((m) => {
+                        const isAlreadyAdded = penandatanganList.some(
+                          (p) =>
+                            p.nama.trim().toLowerCase() === m.nama.trim().toLowerCase() &&
+                            p.jabatan.trim().toLowerCase() === m.jabatan.trim().toLowerCase()
+                        );
+                        return (
+                          <button
+                            key={m.id}
+                            type="button"
+                            onClick={() => handleTambahDariMaster(m)}
+                            disabled={isAlreadyAdded}
+                            className={`text-xs px-3 py-1.5 rounded-lg border font-medium flex items-center gap-1.5 transition ${
+                              isAlreadyAdded
+                                ? "bg-slate-100/80 text-slate-400 border-slate-200 cursor-not-allowed"
+                                : "bg-white text-emerald-800 border-emerald-300 hover:bg-emerald-100 shadow-sm"
+                            }`}
+                          >
+                            <Plus className="w-3 h-3" />
+                            <span>
+                              {m.nama || "Tanpa Nama"} ({m.jabatan || "Pejabat"})
+                            </span>
+                            {isAlreadyAdded && (
+                              <span className="text-[10px] text-slate-400 font-normal">
+                                (Terpasang)
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Opsi Tambahan (Accordion) */}

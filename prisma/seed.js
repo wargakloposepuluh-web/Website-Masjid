@@ -13,7 +13,7 @@ async function main() {
       namaOrganisasi: "DEWAN KEMAKMURAN MASJID (DKM) AL-MUHAJIRIN",
       alamatOrganisasi: "Jl. Masjid Raya No. 45, Kelurahan Sukadamai, Kec. Cilandak, Kota Jakarta Selatan",
       kopType: "image",
-      kopImageUrl: "/sample-kop-banner.svg",
+      kopImageUrl: "/kop-masjid.png",
       marginTop: 2.0,
       marginBottom: 2.0,
       marginLeft: 2.5,
