@@ -89,6 +89,7 @@ export default function SuratPreview({
 }: SuratPreviewProps) {
   const [zoom, setZoom] = useState<number>(0.75); // Skala pratinjau pas di layar
   const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [isPrinting, setIsPrinting] = useState(false);
   const [isWaModalOpen, setIsWaModalOpen] = useState(false);
   const sheetRef = useRef<HTMLDivElement>(null);
 
@@ -119,136 +120,38 @@ export default function SuratPreview({
     return trimmed;
   };
 
-  const handlePrint = () => {
-    if (!sheetRef.current) {
-      window.print();
-      return;
-    }
+  const generatePdfDocument = async () => {
+    if (!sheetRef.current) return null;
 
-    const originalTitle = document.title;
-    const fileName = getSafeFileName().replace(/\.pdf$/, "");
-    document.title = fileName;
+    const html2canvas = (await import("html2canvas")).default;
+    const { jsPDF } = await import("jspdf");
 
-    // Buat iframe terisolasi agar HANYA lembar surat F4 yang dicetak (bebas border card luar, background abu-abu, & layout halaman)
-    const iframe = document.createElement("iframe");
-    iframe.style.position = "fixed";
-    iframe.style.right = "0";
-    iframe.style.bottom = "0";
-    iframe.style.width = "0";
-    iframe.style.height = "0";
-    iframe.style.border = "0";
-    document.body.appendChild(iframe);
+    // Clone target element agar tidak terpengaruh scale zoom preview
+    const sourceEl = sheetRef.current;
+    const clone = sourceEl.cloneNode(true) as HTMLElement;
+    clone.style.transform = "none";
+    clone.style.boxShadow = "none";
+    clone.style.margin = "0";
+    clone.style.width = "215mm";
+    clone.style.minHeight = "330mm";
+    clone.style.maxHeight = "330mm";
+    clone.style.height = "330mm";
+    clone.style.boxSizing = "border-box";
+    clone.style.overflow = "hidden";
 
-    const pri = iframe.contentWindow;
-    if (!pri) {
-      window.print();
-      return;
-    }
-
-    // Salin seluruh stylesheet dari halaman utama ke dalam iframe
-    let stylesHtml = "";
-    document.querySelectorAll("style, link[rel='stylesheet']").forEach((node) => {
-      stylesHtml += node.outerHTML;
-    });
-
-    const sheetHtml = sheetRef.current.outerHTML;
-
-    pri.document.open();
-    pri.document.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>${fileName}</title>
-          ${stylesHtml}
-          <style>
-            @page {
-              size: 215mm 330mm;
-              margin: 0;
-            }
-            * {
-              box-sizing: border-box;
-            }
-            html, body {
-              width: 215mm !important;
-              height: 330mm !important;
-              margin: 0 !important;
-              padding: 0 !important;
-              background: #ffffff !important;
-              overflow: hidden !important;
-              -webkit-print-color-adjust: exact !important;
-              print-color-adjust: exact !important;
-            }
-            .print-sheet {
-              width: 215mm !important;
-              height: 330mm !important;
-              min-height: 330mm !important;
-              max-height: 330mm !important;
-              margin: 0 !important;
-              box-shadow: none !important;
-              border: none !important;
-              background: #ffffff !important;
-              box-sizing: border-box !important;
-              overflow: hidden !important;
-              page-break-after: avoid !important;
-              page-break-inside: avoid !important;
-            }
-          </style>
-        </head>
-        <body>
-          ${sheetHtml}
-        </body>
-      </html>
-    `);
-    pri.document.close();
-
-    // Tunggu gambar dan font selesai dimuat sebelum membuka dialog cetak
-    setTimeout(() => {
-      pri.focus();
-      pri.print();
-      setTimeout(() => {
-        if (document.body.contains(iframe)) {
-          document.body.removeChild(iframe);
-        }
-        document.title = originalTitle;
-      }, 1000);
-    }, 450);
-  };
-
-  const handleDownloadPdf = async () => {
-    if (!sheetRef.current) return;
-    setIsExportingPdf(true);
-
-    const fileName = getSafeFileName();
+    const container = document.createElement("div");
+    container.style.position = "fixed";
+    container.style.top = "0";
+    container.style.left = "0";
+    container.style.width = "215mm";
+    container.style.height = "330mm";
+    container.style.zIndex = "-99999";
+    container.style.pointerEvents = "none";
+    container.style.backgroundColor = "#ffffff";
+    container.appendChild(clone);
+    document.body.appendChild(container);
 
     try {
-      const html2canvas = (await import("html2canvas")).default;
-      const { jsPDF } = await import("jspdf");
-
-      // Clone target element agar tidak terpengaruh scale zoom preview
-      const sourceEl = sheetRef.current;
-      const clone = sourceEl.cloneNode(true) as HTMLElement;
-      clone.style.transform = "none";
-      clone.style.boxShadow = "none";
-      clone.style.margin = "0";
-      clone.style.width = "215mm";
-      clone.style.minHeight = "330mm";
-      clone.style.maxHeight = "330mm";
-      clone.style.height = "330mm";
-      clone.style.boxSizing = "border-box";
-      clone.style.overflow = "hidden";
-
-      const container = document.createElement("div");
-      container.style.position = "fixed";
-      container.style.top = "0";
-      container.style.left = "0";
-      container.style.width = "215mm";
-      container.style.height = "330mm";
-      container.style.zIndex = "-99999";
-      container.style.pointerEvents = "none";
-      container.style.backgroundColor = "#ffffff";
-      container.appendChild(clone);
-      document.body.appendChild(container);
-
       // Tunggu seluruh gambar (kop, ttd, stempel) selesai dimuat
       const imgs = Array.from(clone.querySelectorAll("img"));
       await Promise.all(
@@ -277,8 +180,6 @@ export default function SuratPreview({
         windowWidth: 813,
       });
 
-      document.body.removeChild(container);
-
       // Buat dokumen jsPDF ukuran standar F4 (215 x 330 mm) tepat 1 halaman
       const pdf = new jsPDF({
         orientation: "portrait",
@@ -290,7 +191,95 @@ export default function SuratPreview({
       const imgData = canvas.toDataURL("image/jpeg", 0.98);
       // Paskan gambar ke tepat 1 lembar F4 penuh tanpa pernah membuat halaman kedua
       pdf.addImage(imgData, "JPEG", 0, 0, 215, 330, undefined, "FAST");
-      pdf.save(fileName);
+
+      return pdf;
+    } finally {
+      if (document.body.contains(container)) {
+        document.body.removeChild(container);
+      }
+    }
+  };
+
+  const handlePrint = async () => {
+    if (!sheetRef.current) return;
+    setIsPrinting(true);
+
+    // Buka tab baru lebih awal sebelum proses async agar terbebas dari popup blocker browser
+    const printWindow = window.open("", "_blank");
+    if (printWindow) {
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Menyiapkan Lembar Cetak...</title>
+            <style>
+              body {
+                font-family: system-ui, -apple-system, sans-serif;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                height: 100vh;
+                margin: 0;
+                background: #f8fafc;
+                color: #334155;
+              }
+              .loader {
+                width: 38px;
+                height: 38px;
+                border: 3px solid #e2e8f0;
+                border-top-color: #f97316;
+                border-radius: 50%;
+                animation: spin 0.8s linear infinite;
+                margin-bottom: 16px;
+              }
+              @keyframes spin { to { transform: rotate(360deg); } }
+            </style>
+          </head>
+          <body>
+            <div class="loader"></div>
+            <p style="font-weight: 600; font-size: 15px; color: #1e293b; margin: 0 0 6px;">Menyiapkan dokumen lembar surat F4...</p>
+            <p style="font-size: 13px; color: #64748b; margin: 0;">Pratinjau PDF akan segera tampil di tab ini dan siap dicetak.</p>
+          </body>
+        </html>
+      `);
+    }
+
+    try {
+      const pdf = await generatePdfDocument();
+      if (!pdf) {
+        if (printWindow) printWindow.close();
+        return;
+      }
+
+      const blob = pdf.output("blob");
+      const blobUrl = URL.createObjectURL(blob);
+
+      if (printWindow) {
+        printWindow.location.href = blobUrl;
+      } else {
+        window.open(blobUrl, "_blank");
+      }
+    } catch (err) {
+      console.error("Gagal cetak via PDF tab, fallback ke print dialog:", err);
+      if (printWindow) printWindow.close();
+      window.print();
+    } finally {
+      setIsPrinting(false);
+    }
+  };
+
+  const handleDownloadPdf = async () => {
+    if (!sheetRef.current) return;
+    setIsExportingPdf(true);
+
+    const fileName = getSafeFileName();
+
+    try {
+      const pdf = await generatePdfDocument();
+      if (pdf) {
+        pdf.save(fileName);
+      }
     } catch (err) {
       console.error("Gagal export direct PDF, fallback ke print dialog:", err);
       const originalTitle = document.title;
@@ -486,11 +475,21 @@ export default function SuratPreview({
             <button
               type="button"
               onClick={handlePrint}
-              className="flex items-center gap-1.5 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white font-semibold text-xs px-4 py-2.5 rounded-2xl shadow-md shadow-orange-500/25 transition-all active:scale-95"
-              title="Buka dialog cetak ke printer fisik"
+              disabled={isPrinting || isExportingPdf}
+              className="flex items-center gap-1.5 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white font-semibold text-xs px-4 py-2.5 rounded-2xl shadow-md shadow-orange-500/25 transition-all active:scale-95 disabled:opacity-50"
+              title="Buka pratinjau lembar PDF di tab baru browser untuk dicetak"
             >
-              <Printer className="w-4 h-4" />
-              <span>Cetak</span>
+              {isPrinting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Membuka PDF...</span>
+                </>
+              ) : (
+                <>
+                  <Printer className="w-4 h-4" />
+                  <span>Cetak</span>
+                </>
+              )}
             </button>
 
             {/* Tombol Kirim WhatsApp Pengurus (Hijau Tua) */}

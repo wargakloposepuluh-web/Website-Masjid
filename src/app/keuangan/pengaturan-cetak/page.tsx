@@ -94,7 +94,9 @@ export default function PengaturanCetakLaporanPage() {
         }
 
         // Load Kop & Judul
-        if (data.laporanKopType) setLaporanKopType(data.laporanKopType);
+        if (data.laporanKopType) {
+          setLaporanKopType(data.laporanKopType === "text" ? "image" : data.laporanKopType);
+        }
         if (data.laporanKopImageUrl) setLaporanKopImageUrl(data.laporanKopImageUrl);
         if (data.laporanJudul) setLaporanJudul(data.laporanJudul);
         if (data.laporanSubJudul) setLaporanSubJudul(data.laporanSubJudul);
@@ -420,10 +422,9 @@ export default function PengaturanCetakLaporanPage() {
               <label className="text-xs font-bold text-slate-700 block">
                 Model Kop Laporan:
               </label>
-              <div className="grid grid-cols-3 gap-2.5">
+              <div className="grid grid-cols-2 gap-2.5">
                 {[
                   { id: "image", label: "Banner Gambar Lanskap", desc: "Direkomendasikan (Visual Resmi)" },
-                  { id: "text", label: "Teks Otomatis Masjid", desc: "Menggunakan Nama & Alamat DKM" },
                   { id: "none", label: "Tanpa Kop Surat", desc: "Hanya Menampilkan Judul" },
                 ].map((type) => (
                   <button
